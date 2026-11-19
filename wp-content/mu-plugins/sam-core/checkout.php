@@ -31,7 +31,10 @@ final class SAM_Checkout {
 		add_action( 'woocommerce_admin_order_data_after_billing_address', array( __CLASS__, 'admin_details' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'assets' ), 30 );
 		// Slevový kód je v souhrnu objednávky (coupon_box), ne jako samostatný pruh nad pokladnou.
-		remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+		// (až po načtení wc-template-hooks.php, které akci přidává)
+		add_action( 'wp', function () {
+			remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+		} );
 	}
 
 	/**
