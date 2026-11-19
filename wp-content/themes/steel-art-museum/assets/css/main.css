@@ -107,6 +107,40 @@ button{font:inherit;color:inherit}
 .woocommerce ul.order_details{padding:0}
 .woocommerce h2,.woocommerce h3{font-weight:700}
 
+/* --- pokladna (woocommerce/checkout/form-checkout.php + sam-core/checkout.php) --- */
+.sam-checkout{max-width:640px;margin:0 auto}
+.sam-co-title{font-size:clamp(2.6rem,6vw,4.2rem);color:var(--blued);margin-bottom:clamp(20px,3vw,32px)}
+.sam-co-step{background:#fff;border-radius:4px;padding:clamp(18px,3vw,28px);margin-bottom:12px}
+.sam-co-step h2{font-size:1.25rem!important;margin:0 0 14px!important;color:var(--blued)}
+.woocommerce .sam-checkout table.shop_table{border:0;margin:0}
+.woocommerce .sam-checkout table.shop_table th,.woocommerce .sam-checkout table.shop_table td{padding:8px 0;border-top:1px solid var(--line);background:none}
+.woocommerce .sam-checkout table.shop_table thead{display:none}
+.woocommerce .sam-checkout table.shop_table tr:first-child td{border-top:0}
+.woocommerce .sam-checkout table.shop_table td:last-child,.woocommerce .sam-checkout table.shop_table tfoot td{text-align:right}
+.woocommerce .sam-checkout .order-total th,.woocommerce .sam-checkout .order-total td{font-size:1.25rem;color:var(--blued);border-top:2px solid var(--blued)}
+.woocommerce .sam-checkout .order-total .includes_tax{display:block;font-size:.8rem;font-weight:400;color:#5E636A}
+.sam-checkout .form-row{padding:0;margin:0 0 14px}
+.sam-checkout .form-row label{font-weight:600}
+.sam-checkout #billing_email{font-size:1.1rem;padding:14px 16px}
+.sam-checkout .sam-invoice-toggle label{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600}
+.sam-checkout .sam-invoice-toggle input{width:20px;height:20px;margin:0;accent-color:var(--blued)}
+.sam-checkout .sam-invoice-toggle .description{display:block;color:#5E636A;font-size:.9rem;margin-top:4px;padding-left:30px}
+.sam-checkout .sam-invoice-field{display:none}
+.sam-checkout .optional{display:none}
+.woocommerce-checkout .sam-checkout #payment{background:none;border-radius:0}
+.woocommerce-checkout .sam-checkout #payment ul.payment_methods{padding:0;border:0}
+.woocommerce-checkout .sam-checkout #payment ul.payment_methods li:only-child>input,.woocommerce-checkout .sam-checkout #payment ul.payment_methods li:only-child>label{display:none}
+.woocommerce-checkout .sam-checkout #payment div.payment_box{padding:0;margin:0;background:none}
+.woocommerce-checkout .sam-checkout #payment div.payment_box::before{display:none}
+.woocommerce-checkout .sam-checkout #payment div.form-row{padding:16px 0 0}
+.woocommerce-checkout .sam-checkout #payment #place_order{width:100%;float:none}
+.sam-terms{font-size:.88rem;color:#5E636A;margin:0 0 12px}
+.sam-terms a{color:var(--blued)}
+.sam-co-lock{display:none;margin:0 0 12px;padding:12px 14px;background:#F3EBD8;color:#5A4210;border-radius:4px;font-weight:600}
+.sam-co-pay.is-locked .sam-co-lock{display:block}
+.sam-co-pay.is-locked .woocommerce-checkout-payment{opacity:.35;pointer-events:none;filter:grayscale(1)}
+.sam-checkout .woocommerce-privacy-policy-text{display:none}
+
 /* --- kontaktní formulář [sam_contact_form] (vlastní světlá karta, funguje na tmavém i světlém podkladu) --- */
 .sam-form{background:#fff;color:var(--ink);border-radius:4px;padding:clamp(20px,3vw,32px);margin:1rem 0;text-align:left;scroll-margin-top:24px}
 .sam-form p{margin:0 0 1rem;max-width:none}
