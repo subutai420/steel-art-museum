@@ -24,6 +24,7 @@ final class SAM_Checkout {
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate' ), 10, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'save' ), 10, 2 );
 		add_filter( 'woocommerce_order_button_text', array( __CLASS__, 'button_text' ) );
+		add_filter( 'woocommerce_checkout_required_field_notice', array( __CLASS__, 'required_notice' ), 10, 3 );
 		add_filter( 'woocommerce_enable_order_notes_field', '__return_false' );
 		add_filter( 'woocommerce_cart_needs_shipping_address', '__return_false' );
 		add_action( 'woocommerce_review_order_before_submit', array( __CLASS__, 'terms_notice' ) );
@@ -161,6 +162,11 @@ final class SAM_Checkout {
 			$order->update_meta_data( '_billing_ic', $data['billing_ic'] );
 			$order->update_meta_data( '_billing_dic', $data['billing_dic'] );
 		}
+	}
+
+	/** Místo „Fakturační E-mail je povinné pole“. */
+	public static function required_notice( $notice, $label, $key = '' ) {
+		return 'billing_email' === $key ? self::t( 'locked' ) : $notice;
 	}
 
 	public static function button_text() {
