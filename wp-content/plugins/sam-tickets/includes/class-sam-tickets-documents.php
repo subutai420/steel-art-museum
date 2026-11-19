@@ -242,6 +242,10 @@ final class SAM_Tickets_Documents {
 				'eccLevel'     => EccLevel::H,
 				'scale'        => 12,
 				'addQuietzone' => true,
+				// Bez průhlednosti: PNG s alfa kanálem Dompdf zpracovává přes Imagick,
+				// který na serveru PNG nepodporuje („Unable to set format“).
+				'imageTransparent' => false,
+				'bgColor'          => array( 255, 255, 255 ),
 			)
 		);
 		( new QRCode( $options ) )->render( (string) $payload, $path );
