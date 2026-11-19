@@ -1,0 +1,20 @@
+{
+  "name": "steel-art-museum/tickets",
+  "description": "QR and PDF runtime dependencies for Steel Art Museum tickets.",
+  "type": "wordpress-plugin",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.1",
+    "chillerlan/php-qrcode": "^5.0",
+    "dompdf/dompdf": "^3.1"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "scripts": {
+    "test:validity": "php tests/test-validity.php",
+    "test:refunds": "php tests/test-refund-accounting.php",
+    "test:failed-payment": "php tests/test-failed-payment.php"
+  }
+}
