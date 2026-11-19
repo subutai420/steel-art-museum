@@ -30,6 +30,26 @@ final class SAM_Checkout {
 		add_action( 'woocommerce_review_order_before_submit', array( __CLASS__, 'terms_notice' ) );
 		add_action( 'woocommerce_admin_order_data_after_billing_address', array( __CLASS__, 'admin_details' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'assets' ), 30 );
+		// Slevový kód je v souhrnu objednávky (coupon_box), ne jako samostatný pruh nad pokladnou.
+		remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+	}
+
+	/**
+	 * Pole na slevový kód uvnitř formuláře pokladny. Vnořený <form> nejde, proto bez atributu name
+	 * (neodešle se s objednávkou) a kód se uplatní přes wc-ajax=apply_coupon v assets/checkout.js.
+	 */
+	public static function coupon_box() {
+		?>
+		<div class="sam-coupon">
+			<button type="button" class="sam-coupon-toggle" aria-expanded="false" aria-controls="sam-coupon-row"><?php echo esc_html( self::t( 'coupon_q' ) ); ?></button>
+			<div class="sam-coupon-row" id="sam-coupon-row" hidden>
+				<label class="sr" for="sam-coupon-code"><?php echo esc_html( self::t( 'coupon_label' ) ); ?></label>
+				<input type="text" id="sam-coupon-code" placeholder="<?php echo esc_attr( self::t( 'coupon_label' ) ); ?>" autocomplete="off" autocapitalize="characters">
+				<button type="button" class="button sam-coupon-apply"><?php echo esc_html( self::t( 'coupon_apply' ) ); ?></button>
+			</div>
+			<div class="sam-coupon-msg" aria-live="polite"></div>
+		</div>
+		<?php
 	}
 
 	public static function lang() {
@@ -60,6 +80,9 @@ final class SAM_Checkout {
 				'bad_dic'      => 'DIČ zadejte ve tvaru CZ12345678.',
 				'locked'       => 'Nejdřív vyplňte e-mail, kam pošleme vstupenky.',
 				'admin_inv'    => 'Faktura vyžádána',
+				'coupon_q'     => 'Máte slevový kód?',
+				'coupon_label' => 'Slevový kód',
+				'coupon_apply' => 'Použít',
 				'yes'          => 'ano',
 				'no'           => 'ne',
 			),
@@ -85,6 +108,9 @@ final class SAM_Checkout {
 				'bad_dic'      => 'Enter the VAT ID with its country prefix, e.g. CZ12345678.',
 				'locked'       => 'First enter the e-mail where we should send your tickets.',
 				'admin_inv'    => 'Invoice requested',
+				'coupon_q'     => 'Have a discount code?',
+				'coupon_label' => 'Discount code',
+				'coupon_apply' => 'Apply',
 				'yes'          => 'yes',
 				'no'           => 'no',
 			),

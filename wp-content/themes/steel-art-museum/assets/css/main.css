@@ -139,6 +139,15 @@ button{font:inherit;color:inherit}
 .woocommerce-checkout .sam-checkout #payment #place_order{width:100%;float:none}
 .sam-terms{font-size:.88rem;color:#5E636A;margin:0 0 12px}
 .sam-terms a{color:var(--blued)}
+.sam-coupon{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.sam-coupon-toggle{background:none;border:0;padding:0;font:600 .95rem/1.4 var(--f);color:var(--blued);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.sam-coupon-row{display:flex;gap:8px;margin-top:10px}
+.sam-coupon-row[hidden]{display:none}
+.sam-coupon-row input{flex:1;min-width:0;border:1px solid #B9BDC2;border-radius:4px;padding:10px 12px;font:inherit;text-transform:uppercase}
+.woocommerce .sam-coupon-row .button{padding:10px 20px;border-radius:999px}
+.sam-coupon.is-busy{opacity:.6;pointer-events:none}
+.sam-coupon-msg .woocommerce-error,.sam-coupon-msg .woocommerce-message,.sam-coupon-msg .woocommerce-info{margin:10px 0 0;padding:10px 14px;font-size:.9rem}
+.sam-coupon-msg .woocommerce-error::before,.sam-coupon-msg .woocommerce-message::before{display:none}
 .sam-co-lock{display:none;margin:0 0 12px;padding:12px 14px;background:#F3EBD8;color:#5A4210;border-radius:4px;font-weight:600}
 .sam-co-pay.is-locked .sam-co-lock{display:block}
 .sam-co-pay.is-locked .woocommerce-checkout-payment{opacity:.35;pointer-events:none;filter:grayscale(1)}

@@ -29,6 +29,11 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 	<section class="sam-co-step sam-co-summary">
 		<h2><?php echo esc_html( $sam_t['order'] ); ?></h2>
 		<?php woocommerce_order_review(); ?>
+		<?php
+		if ( wc_coupons_enabled() && class_exists( 'SAM_Checkout' ) ) {
+			SAM_Checkout::coupon_box();
+		}
+		?>
 	</section>
 
 	<?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
