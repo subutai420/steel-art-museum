@@ -284,10 +284,14 @@ class SAM_Stripe_Gateway extends WC_Payment_Gateway {
 		$labels = array( 'card' => 'karta', 'apple_pay' => 'Apple Pay', 'google_pay' => 'Google Pay', 'link' => 'Link' );
 		if ( $method ) {
 			$order->update_meta_data( '_sam_stripe_method', $method );
-			$order->set_payment_method_title( 'Stripe – ' . ( $labels[ $method ] ?? $method ) );
 		}
 		$order->save();
 		$order->payment_complete( (string) $intent['id'] );
+		// payment_complete() vrací název platby na název brány – konkrétní způsob až po něm.
+		if ( $method ) {
+			$order->set_payment_method_title( 'Stripe – ' . ( $labels[ $method ] ?? $method ) );
+			$order->save();
+		}
 		$order->add_order_note( sprintf( 'Platba přes Stripe přijata (%s, %s%s).', $labels[ $method ] ?? ( $method ? $method : 'Stripe' ), $intent['id'], SAM_Stripe_Config::is_test_mode() ? ', TESTOVACÍ režim' : '' ) );
 		return true;
 	}
