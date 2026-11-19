@@ -11,7 +11,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! $order->get_meta( '_sam_ticket_id', true ) ) {
+// Vstupenku hledáme v databázi: e-mail může dostat objekt objednávky z doby
+// před jejím vydáním (meta _sam_ticket_id v něm ještě není).
+$ticket = ( new SAM_Tickets_Repository() )->find_by_order_id( $order->get_id() );
+if ( ! $ticket ) {
 	include trailingslashit( WC()->plugin_path() ) . 'templates/emails/customer-processing-order.php';
 	return;
 }
@@ -19,12 +22,7 @@ if ( ! $order->get_meta( '_sam_ticket_id', true ) ) {
 $copy        = SAM_Tickets_Documents::customer_email_copy( $order );
 $first_name  = trim( (string) $order->get_billing_first_name() );
 $name_part   = $first_name ? ' ' . $first_name : '';
-$ticket_id   = absint( $order->get_meta( '_sam_ticket_id', true ) );
-$valid_until = '';
-if ( $ticket_id ) {
-	$ticket      = ( new SAM_Tickets_Repository() )->find( $ticket_id );
-	$valid_until = $ticket ? get_date_from_gmt( $ticket->valid_until, 'j. n. Y' ) : '';
-}
+$valid_until = get_date_from_gmt( $ticket->valid_until, 'j. n. Y' );
 
 do_action( 'woocommerce_email_header', $email_heading, $email );
 ?>

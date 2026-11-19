@@ -163,14 +163,22 @@ final class SAM_Tickets_Reports {
 					preg_replace( '/(^|, )0× [^,]+/u', '', (string) $row->remaining_items ),
 					number_format( (float) $row->remaining_value, 2, ',', '' ),
 					get_date_from_gmt( $row->valid_until, 'j. n. Y' ),
-					$row->status,
-					$row->source,
+					self::label( 'status', $row->status ),
+					self::label( 'source', $row->source ),
 				),
 				';'
 			);
 		}
 		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 		return $path;
+	}
+
+	private static function label( $type, $value ) {
+		$labels = array(
+			'status' => array( 'valid' => 'platná', 'partially_redeemed' => 'částečně uplatněná', 'redeemed' => 'uplatněná', 'expired' => 'propadlá', 'void' => 'zneplatněná' ),
+			'source' => array( 'woocommerce' => 'online nákup', 'legacy' => 'starý systém', 'bank_transfer' => 'bankovní převod', 'invoice' => 'faktura', 'compensation' => 'kompenzace', 'gift' => 'dárek / spolupráce', 'manual' => 'ruční vystavení' ),
+		);
+		return $labels[ $type ][ $value ] ?? $value;
 	}
 
 	/**

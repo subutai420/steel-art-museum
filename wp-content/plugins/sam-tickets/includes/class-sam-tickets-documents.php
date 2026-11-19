@@ -292,8 +292,9 @@ final class SAM_Tickets_Documents {
 			. '.tag{position:absolute;right:14mm;top:13mm;padding:2.5mm 5mm;border-radius:6mm;background:#E6BC62;color:#0F1012;font-size:7.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:.8pt}'
 			. '.headline{position:absolute;left:14mm;top:38mm;font-size:25pt;line-height:1.02;font-weight:bold;text-transform:uppercase}'
 			. '.subline{position:absolute;left:14mm;top:63mm;width:120mm;font-size:8.5pt;color:#CDD0D4}'
-			. '.qr-card{position:absolute;left:45mm;top:70mm;width:58mm;height:58mm;padding:6mm;border-radius:2mm;background:#fff;border:.4mm solid #DCDDDF}'
-			. '.qr-card img{width:46mm;height:46mm}'
+			// Dompdf nepočítá padding do rozměru (border-box), proto je QR v kartě umístěný absolutně.
+			. '.qr-card{position:absolute;left:45mm;top:70mm;width:58mm;height:58mm;border-radius:2mm;background:#fff;border:.4mm solid #DCDDDF}'
+			. '.qr-card img{position:absolute;left:6mm;top:6mm;width:46mm;height:46mm}'
 			. '.code{position:absolute;left:0;top:131mm;width:148mm;text-align:center;color:#3F4349;font-size:7.5pt;letter-spacing:.6pt}'
 			. '.content{position:absolute;left:14mm;right:14mm;top:139mm;height:36mm}.content h2{margin:0 0 2.5mm;font-size:11pt;text-transform:uppercase}'
 			. '.items{width:100%;border-collapse:collapse;font-size:8.8pt}.items td{padding:1.6mm 0;border-bottom:.25mm solid #DCDDDF}.items .qty{text-align:right;font-weight:bold}'
