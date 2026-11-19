@@ -27,7 +27,7 @@
 .b-topbar-rating b{color:#fff}
 .sam-b .stars{display:inline-flex;gap:1px;color:#C9C9C9;vertical-align:-2px}
 .sam-b .stars .on{color:var(--gold)}
-.sam-b .b-top{background:var(--dark);padding-top:10px;padding-bottom:10px;font-family:var(--bf)}
+.sam-b .b-top{color:#fff;background:var(--dark);padding-top:10px;padding-bottom:10px;font-family:var(--bf)}
 .sam-b .b-top .logo img{width:52px;height:52px}
 .sam-b .menu{font:600 1rem/1.2 var(--bf);gap:1.6rem}
 .sam-b .menu .nav{gap:1.6rem}

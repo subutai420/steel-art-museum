@@ -155,7 +155,7 @@ if [ -s "$WORK/changed.txt" ] || [ -s "$WORK/removed.txt" ]; then
 	# OPcache kontroluje změny souborů jednou za 60 s (opcache.revalidate_freq=60).
 	echo "Čekám 65 s, než PHP načte nové soubory..."
 	sleep 65
-	remote "cd $REMOTE_APP/wp-content/cache 2>/dev/null && for d in all sam-page; do [ -d \$d ] && mv \$d \$d.deploy-\$\$ && rm -rf \$d.deploy-\$\$; done; true" < /dev/null
+	remote "cd $REMOTE_APP/wp-content/cache 2>/dev/null && for d in all sam-page wpfc-minified; do [ -d \$d ] && mv \$d \$d.deploy-\$\$ && rm -rf \$d.deploy-\$\$; done; true" < /dev/null
 	echo "Stránková cache smazána."
 else
 	echo "Server už odpovídá $SHORT."
