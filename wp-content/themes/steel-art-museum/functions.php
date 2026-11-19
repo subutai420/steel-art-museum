@@ -121,8 +121,14 @@ add_filter( 'wp_nav_menu_objects', function ( $items, $args ) {
 	if ( empty( $args->theme_location ) || 'primary' !== $args->theme_location ) {
 		return $items;
 	}
-	return array_values( array_filter( $items, function ( $item ) {
-		return 'wpml_ls_menu_item' !== $item->type && false === strpos( implode( ' ', (array) $item->classes ), 'wpml-ls' );
+	// Kotvy, které na nové domovské stránce existují (stará měla i #video aj.).
+	$anchors = array( 'vstupenky', 'co-uvidite', 'historie', 'navsteva', 'skoly' );
+	return array_values( array_filter( $items, function ( $item ) use ( $anchors ) {
+		if ( 'wpml_ls_menu_item' === $item->type || false !== strpos( implode( ' ', (array) $item->classes ), 'wpml-ls' ) ) {
+			return false;
+		}
+		$hash = (string) wp_parse_url( $item->url, PHP_URL_FRAGMENT );
+		return '' === $hash || in_array( $hash, $anchors, true );
 	} ) );
 }, 10, 2 );
 

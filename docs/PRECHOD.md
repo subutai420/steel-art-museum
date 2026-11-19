@@ -23,6 +23,10 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 12. Pokladna: stránka „Pokladna“ (ID 9) má místo bloku WooCommerce obsahovat shortcode `[woocommerce_checkout]` (EN překlad stránky stejně). *(19. 11. 2026, do vlastní pokladny ve fázi 4)*
 13. V Stripe zaregistrovat ostrou doménu pro Apple Pay (Nastavení → Platební metody → Domény).
 
+## Šablona (steel-art-museum)
+14a. `wp theme activate steel-art-museum` a `wp menu location assign main primary` (EN menu přiřadí WPML). GeneratePress a GP Premium můžou zůstat nainstalované kvůli návratu, obsah stránek dál potřebuje plugin GenerateBlocks. *(19. 11. 2026)*
+14b. Po přepnutí smazat stránkovou cache (`rm -rf wp-content/cache/all/*`).
+
 ## Server
 14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
 15. nginx: testovací doména je od 19. 11. 2026 bez hesla, jen s hlavičkou `X-Robots-Tag: noindex` (mapa `$sam_robots`); ostrá doména hlavičku nedostává. Nic není potřeba měnit.
