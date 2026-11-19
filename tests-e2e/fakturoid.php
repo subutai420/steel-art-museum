@@ -66,6 +66,8 @@ $svc  = SAM_Fakturoid_Service::instance();
 $svc->set_client( new SAM_Fakturoid_Client() );
 $repo = new SAM_Tickets_Repository();
 $GLOBALS['created'] = array();
+// Zbytky z přerušeného běhu.
+foreach ( wc_get_orders( array( 'billing_email' => 'test-fak@example.com', 'limit' => -1, 'return' => 'ids' ) ) as $oid ) { $GLOBALS['created'][] = $oid; }
 delete_option( SAM_Fakturoid_Service::RETAIL_OPTION . '_' . md5( 'test-ucet' ) );
 delete_transient( 'sam_fakturoid_token_' . md5( 'test-id' ) );
 
@@ -136,6 +138,7 @@ $svc->create_invoice( $o1->get_id(), 0 );
 ok( 'žádná další faktura', count( $GLOBALS['fk']['docs'] ) === $docs );
 
 echo "== 4. Refundace 1 dospělého → opravný doklad\n";
+add_filter( 'sam_tickets_online_gateways', '__return_empty_array', 99 ); // ruční refundace bez Stripe (jen pro test)
 $o1 = wc_get_order( $o1->get_id() );
 foreach ( $o1->get_items() as $item_id => $item ) { if ( 1115 === (int) $item->get_product_id() ) { $adult = $item_id; $line = $item; } }
 $refund = wc_create_refund( array(

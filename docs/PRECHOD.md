@@ -23,6 +23,11 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 12. Pokladna: stránka „Pokladna“ (ID 9) má místo bloku WooCommerce obsahovat shortcode `[woocommerce_checkout]` (EN překlad stránky stejně). *(19. 11. 2026, do vlastní pokladny ve fázi 4)*
 13. V Stripe zaregistrovat ostrou doménu pro Apple Pay (Nastavení → Platební metody → Domény).
 
+## Faktury (sam-fakturoid)
+13a. Do `/srv/stack/.env` doplnit `SAM_FAKTUROID_ACCOUNT=roslincorp`, `SAM_FAKTUROID_CLIENT_ID`, `SAM_FAKTUROID_CLIENT_SECRET` (API v3 – stejné údaje, jaké má v nastavení plugin Toret, nebo nové v Nastavení → Uživatelský účet → API) a `SAM_FAKTUROID_NUMBER_FORMAT=235201` (řada, kterou používal Toret). `docker compose up -d php cron`.
+13b. `wp plugin deactivate woo-fakturoid` a `wp plugin activate sam-fakturoid`. Kontrola přihlášení: `wp sam-fakturoid check`. *(19. 11. 2026)*
+13c. Staré objednávky s fakturou z Toretu (meta `fakturoid_invoice_id`) novou fakturu nedostanou; refundace k nim vystaví opravný doklad.
+
 ## Šablona (steel-art-museum)
 14a. `wp theme activate steel-art-museum` a `wp menu location assign main primary` (EN menu přiřadí WPML). GeneratePress a GP Premium můžou zůstat nainstalované kvůli návratu, obsah stránek dál potřebuje plugin GenerateBlocks. *(19. 11. 2026)*
 14b. Po přepnutí smazat stránkovou cache (`rm -rf wp-content/cache/all/*`).
