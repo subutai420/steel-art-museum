@@ -17,8 +17,8 @@ set -euo pipefail
 
 REMOTE_STACK=/srv/stack
 REMOTE_APP=$REMOTE_STACK/www
-REMOTE_BACKUPS=/srv/.deploy-backups
-REMOTE_MARKER=/srv/.remote-deployed-commit
+REMOTE_BACKUPS=$REMOTE_STACK/.deploy/backups
+REMOTE_MARKER=$REMOTE_STACK/.deploy/deployed-commit
 PHP_IMAGE=wordpress:php8.1-fpm-alpine
 SMOKE_PATHS="/ /en/ /cenik/ /kontakt/ /robots.txt /wp-login.php"
 
@@ -128,7 +128,7 @@ fi
 BACKUP=""
 if [ -s "$WORK/changed.txt" ] || [ -s "$WORK/removed.txt" ]; then
 	BACKUP="$REMOTE_BACKUPS/pre-$SHORT-$STAMP.tar.gz"
-	STAGE="/srv/.deploy-stage-$SHORT-$STAMP"
+	STAGE="$REMOTE_STACK/.deploy/stage-$SHORT-$STAMP"
 
 	# Záloha všech přepisovaných a mazaných souborů + databáze.
 	awk -F'\t' 'NR==FNR { if ($1 != "MISSING") have[$2] = 1; next } ($0 in have)' "$WORK/server.txt" \
@@ -171,5 +171,5 @@ if grep -q '^FAIL' <<< "$SMOKE"; then
 fi
 
 printf 'commit=%s\ntag=%s\ndatum=%s\npoznamka=%s\n' "$SHORT" "$TAG" "$(date +%F)" "${NOTE:-scripts/deploy.sh}${BACKUP:+; zaloha $BACKUP}" \
-	| remote "cat > $REMOTE_MARKER"
+	| remote "mkdir -p $(dirname $REMOTE_MARKER) && cat > $REMOTE_MARKER"
 echo "Hotovo. Značka nasazení: $SHORT."

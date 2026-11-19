@@ -28,7 +28,7 @@ scripts/deploy.sh <git-ref> --note "co se nasazuje"
 Nastavení v `.env` (necommituje se): `SAM_SSH_HOST`, `SAM_SSH_PORT`, `SAM_SSH_USER`, volitelně `SAM_SSH_KEY`, `SAM_SITE_HOST`.
 
 Skript:
-1. ověří, že se soubory na serveru neliší od posledního nasazeného commitu (`/srv/.remote-deployed-commit`),
-2. zazálohuje přepisované soubory a databázi do `/srv/.deploy-backups/`,
+1. ověří, že se soubory na serveru neliší od posledního nasazeného commitu (`/srv/stack/.deploy/deployed-commit`),
+2. zazálohuje přepisované soubory a databázi do `/srv/stack/.deploy/backups/`,
 3. nahraje export vedle webu, zkontroluje syntaxi PHP a teprve pak nakopíruje změněné soubory,
 4. smaže stránkovou cache a zkontroluje hlavní stránky přímo na serveru; značku aktualizuje jen při úspěchu.
