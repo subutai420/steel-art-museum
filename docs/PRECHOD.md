@@ -25,4 +25,4 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 
 ## Server
 14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
-15. nginx: v mapě `$sam_auth` už je ostrá doména bez hesla; testovací doména zůstává za heslem.
+15. nginx: testovací doména je od 19. 11. 2026 bez hesla, jen s hlavičkou `X-Robots-Tag: noindex` (mapa `$sam_robots`); ostrá doména hlavičku nedostává. Nic není potřeba měnit.

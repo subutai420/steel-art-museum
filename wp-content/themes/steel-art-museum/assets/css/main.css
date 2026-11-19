@@ -1,0 +1,119 @@
+/* Steel Art Museum – „Žár“, černá ocel. Společné styly všech stránek. Viz design-homepage/DESIGN-zar.md */
+:root{
+  --blued:#0F1012; --blued-2:#1A1C1F; --blued-3:#2D3035;
+  --straw:#E6BC62; --straw-hi:#F2CF83; --bronze:#C58447;
+  --steel:#9CA1A8; --mist:#CDD0D4; --white:#F4F4F2; --ink:#3F4349; --line:#DCDEE1;
+  --f:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gut:clamp(16px,4vw,56px);
+  --sec:clamp(72px,10vw,140px);
+  /* Barvy GeneratePressu, na které odkazují bloky GenerateBlocks v obsahu stránek */
+  --contrast:#0F1012; --contrast-2:#1A1C1F; --contrast-3:#0F1012; --contrast-4:#3F4349; --contrast-5:#FFFFFF;
+  --base:#F4F4F2; --base-2:#FFFFFF; --accent:#1A1C1F;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:24px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--blued);color:var(--white);font:400 1.0625rem/1.6 var(--f)}
+img{max-width:100%;height:auto}
+a{color:inherit;text-underline-offset:4px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--straw);outline-offset:3px}
+.skip{position:absolute;left:-9999px;top:8px;z-index:99;background:var(--straw);color:var(--blued);padding:10px 16px;border-radius:999px;font-weight:700;text-decoration:none}
+.skip:focus{left:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.display{font-weight:800;font-stretch:75%;text-transform:uppercase;line-height:.9;letter-spacing:-.005em;margin:0}
+.h2{font-size:clamp(2.6rem,5.4vw,5rem)}
+.lead{font-size:1.2rem;color:var(--mist);max-width:46ch}
+
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:.5em;white-space:nowrap;background:var(--straw);color:var(--blued);font:700 1rem/1 var(--f);padding:16px 26px;border-radius:999px;text-decoration:none;border:2px solid var(--straw);cursor:pointer;min-height:52px}
+.pill:hover{background:var(--straw-hi);border-color:var(--straw-hi)}
+.pill.ghost{background:transparent;color:var(--white);border-color:var(--steel)}
+.pill.ghost:hover{border-color:var(--white)}
+.pill.dark{background:var(--blued);border-color:var(--blued);color:var(--white)}
+.pill.dark:hover{background:var(--blued-2);border-color:var(--blued-2)}
+.pill:disabled,.pill[aria-disabled="true"]{opacity:.45;cursor:default;pointer-events:none}
+
+/* --- hlavička --- */
+.top{position:relative;z-index:30;display:flex;align-items:center;gap:2rem;padding:16px var(--gut);background:var(--blued)}
+.top--over{position:absolute;inset:0 0 auto 0;background:transparent}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:800;font-stretch:75%;text-transform:uppercase;line-height:.95;font-size:1.05rem;flex:none}
+.logo img{width:56px;height:56px;display:block}
+.menu{display:flex;align-items:center;gap:1.5rem;margin-left:auto;font-weight:500}
+.menu .nav{display:flex;gap:1.5rem;list-style:none;margin:0;padding:0}
+.menu a{text-decoration:none}
+.menu a:hover,.menu .current-menu-item>a{text-decoration:underline}
+.lang{opacity:.8}
+.top-cta{flex:none}
+.burger{display:none;width:48px;height:48px;border:2px solid var(--steel);border-radius:50%;background:transparent;cursor:pointer;position:relative;flex:none}
+.burger-lines,.burger-lines::before,.burger-lines::after{position:absolute;left:50%;width:18px;height:2px;margin-left:-9px;background:var(--white);content:""}
+.burger-lines{top:50%;margin-top:-1px}
+.burger-lines::before{top:-6px;left:0;margin-left:0}
+.burger-lines::after{top:6px;left:0;margin-left:0}
+.burger[aria-expanded="true"] .burger-lines{background:transparent}
+.burger[aria-expanded="true"] .burger-lines::before{top:0;transform:rotate(45deg)}
+.burger[aria-expanded="true"] .burger-lines::after{top:0;transform:rotate(-45deg)}
+
+@media (max-width:1000px){
+  .top{gap:12px}
+  .logo span{display:none}
+  .top-cta{margin-left:auto;padding:12px 18px;min-height:44px}
+  .burger{display:block}
+  .menu{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;align-items:flex-start;gap:0;margin:0;padding:8px var(--gut) 24px;background:var(--blued);border-bottom:1px solid var(--blued-3);font-size:1.25rem}
+  .menu.open{display:flex}
+  .menu .nav{flex-direction:column;gap:0;width:100%}
+  .menu a{display:block;padding:12px 0}
+}
+
+/* --- podstránky --- */
+.page-head{padding:clamp(40px,7vw,96px) var(--gut) clamp(32px,5vw,64px)}
+.page-head h1{font-size:clamp(2.8rem,7vw,6rem);max-width:18ch}
+.page-head .lead{margin-top:1.4rem}
+.page-head .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:2rem}
+.paper{background:var(--white);color:var(--ink);padding:clamp(40px,6vw,88px) var(--gut) var(--sec)}
+.entry{max-width:1200px;margin:0 auto}
+.entry>*:first-child{margin-top:0}
+.entry h1,.entry h2,.entry h3,.entry h4{color:var(--blued);line-height:1.15;font-weight:700}
+.entry h2{font-size:clamp(1.8rem,3vw,2.4rem);margin:2.2rem 0 1rem}
+.entry h3{font-size:1.4rem;margin:1.8rem 0 .6rem}
+.entry p,.entry li{max-width:72ch}
+.entry a{color:var(--blued);font-weight:600}
+.entry table{border-collapse:collapse;width:100%}
+.entry td,.entry th{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left}
+.entry .wp-block-button__link,.entry .gb-button{border-radius:999px}
+.entry details{border-bottom:1px solid var(--line);padding:14px 0}
+.entry summary{cursor:pointer;font-weight:600;color:var(--blued)}
+.not-found .page-head{min-height:60vh}
+
+/* --- WooCommerce (košík, pokladna, děkovná stránka) na světlém pozadí --- */
+.sam-shop .paper{padding-top:clamp(32px,5vw,64px)}
+.woocommerce .button,.woocommerce button.button,.woocommerce a.button,.woocommerce input.button,.woocommerce #respond input#submit,
+.woocommerce button.button.alt,.woocommerce a.button.alt,.woocommerce #payment #place_order{background:var(--blued);color:var(--white);border-radius:999px;padding:14px 24px;font:700 1rem/1 var(--f);border:0}
+.woocommerce .button:hover,.woocommerce button.button.alt:hover,.woocommerce #payment #place_order:hover{background:var(--blued-2);color:var(--white)}
+.woocommerce #payment #place_order{background:var(--straw);color:var(--blued);min-height:56px;font-size:1.1rem}
+.woocommerce #payment #place_order:hover{background:var(--straw-hi);color:var(--blued)}
+.woocommerce form .form-row input.input-text,.woocommerce form .form-row textarea,.woocommerce form .form-row select,.woocommerce-page form .form-row input.input-text{border:1px solid #B9BDC2;border-radius:4px;padding:12px 14px;font:inherit;background:#fff;color:var(--blued)}
+.woocommerce form .form-row label{font-weight:600;color:var(--blued)}
+.woocommerce-checkout #payment,.woocommerce-cart .cart-collaterals .cart_totals{background:#EAEBED;border-radius:4px}
+.woocommerce-checkout #payment div.payment_box{background:#fff;color:var(--ink)}
+.woocommerce-checkout #payment div.payment_box::before{border-bottom-color:#fff}
+.woocommerce table.shop_table{border-radius:4px;border-color:var(--line)}
+.woocommerce-message,.woocommerce-info{border-top-color:var(--blued)}
+.woocommerce-message::before,.woocommerce-info::before{color:var(--blued)}
+.woocommerce-error{border-top-color:#B3261E}
+.woocommerce ul.order_details{padding:0}
+.woocommerce h2,.woocommerce h3{font-weight:700}
+
+/* --- patička --- */
+.foot{border-top:1px solid var(--blued-3);color:var(--steel);font-size:.95rem}
+.foot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem var(--gut);padding:clamp(40px,5vw,64px) var(--gut)}
+.foot-h{font-size:1rem;font-weight:700;color:var(--white);margin:0 0 .6rem}
+.foot p{margin:0 0 .6rem}
+.foot a{color:var(--mist)}
+.foot a:hover{color:var(--white)}
+.social{display:flex;gap:1.2rem}
+.foot-links{list-style:none;margin:0;padding:0}
+.foot-links li+li{margin-top:4px}
+.foot-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.6rem;padding:20px var(--gut) 28px;border-top:1px solid var(--blued-3)}
+@media (max-width:760px){.foot-grid{grid-template-columns:1fr}}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
