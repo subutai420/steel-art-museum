@@ -12,7 +12,9 @@
   const q = {};
   D.rows.forEach(r => { q[r.k] = r.k === 'adult' ? 2 : 0; });
   rowsEl.innerHTML = D.rows.map(r => `<li class="row"><div><b>${esc(r.n)}</b><small>${esc(r.d)}</small></div>` +
-    `<span class="price">${!D.promo && r.r > r.p ? `<s>${money(r.r)}</s>` : ''}${money(r.p)}</span>` +
+    (D.boxOffice
+      ? `<span class="price">${money(r.p)}${r.r > r.p ? `<small class="door">${esc(T.door)} ${money(r.r)}</small>` : ''}</span>`
+      : `<span class="price">${!D.promo && r.r > r.p ? `<s>${money(r.r)}</s>` : ''}${money(r.p)}</span>`) +
     `<div class="step"><button type="button" data-k="${r.k}" data-d="-1" aria-label="${esc(T.minus + r.n)}">−</button>` +
     `<output id="q-${r.k}" aria-label="${esc(T.count + r.n)}">0</output>` +
     `<button type="button" data-k="${r.k}" data-d="1" aria-label="${esc(T.plus + r.n)}">+</button></div></li>`).join('');
@@ -48,7 +50,7 @@
     if (n > 10) msg += T.groups;
     $('msg').textContent = msg;
     buy.disabled = n === 0;
-    bar.innerHTML = n ? `${n} ${esc(word(n))}<b>${money(pay)}</b>` : esc(D.promo ? T.bar : T.bar0);
+    if (bar) bar.innerHTML = n ? `${n} ${esc(word(n))}<b>${money(pay)}</b>` : esc(D.promo ? T.bar : T.bar0);
   }
   calc();
 

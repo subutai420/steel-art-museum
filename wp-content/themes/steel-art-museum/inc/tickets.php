@@ -111,6 +111,7 @@ function sam_ticket_offer( $lang ) {
 			'bar'     => 'Black Friday: every second ticket free',
 			'bar0'    => 'Tickets online',
 			'busy'    => 'Just a moment…',
+			'door'    => 'at the door',
 			'err'     => 'Something went wrong. Please try again.',
 			'tickets' => array( 'ticket', 'tickets', 'tickets' ),
 		) : array(
@@ -128,6 +129,7 @@ function sam_ticket_offer( $lang ) {
 			'bar'     => 'Black Friday: každá druhá vstupenka zdarma',
 			'bar0'    => 'Vstupenky online',
 			'busy'    => 'Moment…',
+			'door'    => 'na pokladně',
 			'err'     => 'Něco se nepovedlo. Zkuste to prosím znovu.',
 			'tickets' => array( 'vstupenka', 'vstupenky', 'vstupenek' ),
 		),

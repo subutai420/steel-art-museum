@@ -1,0 +1,178 @@
+/* Varianta B domovské stránky: blíž původnímu webu (Barlow, tmavá hlavička, světlé sekce), víc fotek a recenzí. */
+.sam-b{
+  --bf:"Barlow", system-ui, sans-serif;
+  --tf:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --dark:#141414; --dark-2:#1F1F1F; --paper:#F6F5F2; --card:#FFFFFF; --text:#2B2B2B; --muted:#6B6B6B; --line:#E4E2DD;
+  --gold:#F2B705; --gold-hi:#FFC72C;
+  --gut:clamp(16px,4vw,48px); --sec:clamp(56px,8vw,112px); --max:1240px;
+  background:var(--paper);color:var(--text);font:400 1rem/1.65 var(--tf);
+}
+.sam-b h1,.sam-b h2,.sam-b h3,.sam-b h4{font-family:var(--bf);color:var(--dark);line-height:1.15;margin:0}
+.sam-b a{text-underline-offset:3px}
+
+/* tlačítka */
+.b-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 24px;border-radius:6px;background:var(--gold);color:#111;font:700 1rem/1 var(--bf);letter-spacing:.02em;text-decoration:none;border:2px solid var(--gold);cursor:pointer}
+.b-btn:hover{background:var(--gold-hi);border-color:var(--gold-hi)}
+.b-btn--light{background:#fff;border-color:#fff}
+.b-btn--light:hover{background:#eee;border-color:#eee}
+.b-btn--outline{background:transparent;color:var(--dark);border-color:var(--dark)}
+.b-btn--outline:hover{background:var(--dark);color:#fff}
+.b-btn:disabled{opacity:.45;cursor:default}
+.b-link{font-weight:600;color:var(--dark)}
+
+/* horní pruh a hlavička */
+.b-topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 28px;padding:7px var(--gut);background:#000;color:#D6D6D6;font-size:.85rem}
+.b-topbar-item{display:inline-flex;align-items:center;gap:7px;color:inherit;text-decoration:none}
+.b-topbar a.b-topbar-item:hover{color:#fff}
+.b-topbar-rating b{color:#fff}
+.sam-b .stars{display:inline-flex;gap:1px;color:#C9C9C9;vertical-align:-2px}
+.sam-b .stars .on{color:var(--gold)}
+.sam-b .b-top{background:var(--dark);padding-top:10px;padding-bottom:10px;font-family:var(--bf)}
+.sam-b .b-top .logo img{width:52px;height:52px}
+.sam-b .menu{font:600 1rem/1.2 var(--bf);gap:1.6rem}
+.sam-b .menu .nav{gap:1.6rem}
+.b-social{display:inline-flex;gap:14px;align-items:center}
+.b-social a{display:inline-flex;color:#fff;opacity:.85}
+.b-social a:hover{opacity:1}
+.sam-b .top-cta{flex:none}
+@media (max-width:1000px){
+  .b-topbar{justify-content:flex-start;gap:2px 16px;font-size:.8rem}
+  .b-topbar-item:nth-child(2){display:none}
+  .sam-b .top-cta{margin-left:auto;min-height:42px;padding:10px 18px}
+  .sam-b .menu{background:var(--dark)}
+  .b-social{padding:12px 0}
+}
+
+/* úvod s videem */
+.b-hero{position:relative;height:min(78vh,760px);min-height:460px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:#000;isolation:isolate}
+.b-hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.b-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at center,rgba(0,0,0,.35) 0%,rgba(0,0,0,.6) 100%)}
+.b-hero-in{padding:0 var(--gut);max-width:900px}
+.sam-b .b-hero h1{color:#fff;font-weight:800;text-transform:uppercase;font-size:clamp(2.6rem,7vw,5rem);letter-spacing:.01em}
+.b-hero-sub{color:#fff;font:400 clamp(1.1rem,2.6vw,1.6rem)/1.35 var(--bf);margin:12px 0 0;letter-spacing:.02em}
+.b-hero-ratings{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:22px 0 0}
+.b-hero-ratings a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;text-decoration:none;font-size:.92rem;backdrop-filter:blur(4px)}
+.b-hero-cta{margin:26px 0 0}
+
+/* čísla */
+.b-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));max-width:var(--max);margin:0 auto;padding:clamp(28px,4vw,44px) var(--gut);gap:16px;text-align:center}
+.b-stats p{margin:0;color:var(--muted);font-size:.95rem}
+.b-stats b{display:block;font:800 clamp(1.7rem,3.4vw,2.6rem)/1.1 var(--bf);color:var(--dark)}
+
+/* společné sekce */
+.b-sec{max-width:var(--max);margin:0 auto;padding:var(--sec) var(--gut) 0}
+.b-head{max-width:720px;margin:0 auto clamp(28px,4vw,48px);text-align:center}
+.b-head--row{max-width:none;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;text-align:left}
+.b-kicker{margin:0 0 8px;font:700 .85rem/1 var(--bf);letter-spacing:.14em;text-transform:uppercase;color:#9A7400}
+.b-head h2,.sam-b .b-family h2,.sam-b .b-story h2,.sam-b .b-visit h2{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:700}
+.b-lead{margin:14px 0 0;font-size:1.1rem;color:var(--muted)}
+.b-center{text-align:center;margin:20px 0 0}
+
+/* zážitek */
+.b-exp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.b-card{margin:0;background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.b-card img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
+.b-card figcaption{padding:16px 18px 20px}
+.sam-b .b-card h3{font-size:1.25rem;font-weight:700}
+.b-card p{margin:6px 0 0;color:var(--muted);font-size:.95rem}
+
+/* recenze */
+.b-scores{display:flex;gap:12px;flex-wrap:wrap}
+.b-score{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:10px;background:var(--card);text-decoration:none;color:var(--dark);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.b-score-num{font:800 2.2rem/1 var(--bf)}
+.b-score-src{display:block;font-size:.85rem;color:var(--muted);margin-top:2px}
+.b-rev-track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,360px);gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 16px;scrollbar-width:thin}
+.b-rev{margin:0;scroll-snap-align:start;background:var(--card);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.b-rev p{margin:0;font-size:.98rem;flex:1}
+.b-rev footer{font-size:.88rem;color:var(--muted)}
+.b-rev footer b{color:var(--dark)}
+
+/* výstava */
+.b-cat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;margin-bottom:clamp(28px,4vw,48px)}
+.b-cat--rev .b-cat-img{order:2}
+.b-cat-img img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
+.sam-b .b-cat h3{font-size:clamp(1.5rem,2.6vw,2rem);font-weight:700}
+.b-cat p{margin:10px 0 0;font-size:1.05rem;color:var(--muted);max-width:52ch}
+
+/* zábava pro všechny */
+.b-family{margin:var(--sec) 0 0;background:var(--dark);color:#E9E9E9;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.b-family-img img{display:block;width:100%;height:100%;min-height:340px;object-fit:cover}
+.b-family-txt{padding:clamp(32px,6vw,80px) var(--gut);align-self:center;max-width:620px}
+.sam-b .b-family h2{color:#fff}
+.b-family p{font-size:1.1rem;margin:14px 0 0}
+.b-family ul{margin:18px 0 0;padding-left:1.2em}
+
+/* vstupenky */
+.b-promo{display:inline-block;margin:16px 0 0;padding:8px 16px;border-radius:999px;background:#FFF3C4;color:#5A4500;font-weight:600;font-size:.95rem}
+.b-tk{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:16px;align-items:start}
+.b-tk-calc,.b-tk-box{background:var(--card);border-radius:10px;padding:clamp(18px,3vw,32px);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.sam-b .rows{list-style:none;margin:0;padding:0}
+.sam-b .row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.sam-b .row b{font:700 1.08rem/1.2 var(--bf);color:var(--dark)}
+.sam-b .row small{display:block;color:var(--muted);font-size:.88rem}
+.sam-b .row .price{text-align:right;font-weight:600;color:var(--dark);font-variant-numeric:tabular-nums;min-width:7ch}
+.sam-b .row .price .door{display:block;font-weight:400;font-size:.8rem;color:var(--muted)}
+.sam-b .step{display:flex;align-items:center;gap:6px}
+.sam-b .step button{width:40px;height:40px;border-radius:50%;border:2px solid #CFCCC5;background:#fff;color:var(--dark);font-size:1.3rem;line-height:1;cursor:pointer}
+.sam-b .step button:hover:not(:disabled){border-color:var(--dark)}
+.sam-b .step button:disabled{opacity:.35;cursor:default}
+.sam-b .step output{min-width:2ch;text-align:center;font:800 1.5rem/1 var(--bf);color:var(--dark)}
+.sam-b .sum{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;padding-top:18px}
+.sam-b .sum p{margin:0}
+.sam-b .sum .msg{color:#7A5C00;font-weight:600;min-height:1.5em}
+.sam-b .sum .total{text-align:right;font:800 clamp(2rem,4vw,2.6rem)/1 var(--bf);color:var(--dark);font-variant-numeric:tabular-nums}
+.sam-b .sum .total small{display:block;font:500 .9rem/1.4 var(--tf);color:var(--muted)}
+.sam-b .sum .was{text-decoration:line-through;color:var(--muted);font-size:.5em;margin-right:8px}
+.sam-b .b-btn--buy{grid-column:1/-1;width:100%;min-height:54px;font-size:1.1rem}
+.sam-b .b-tk-box h3{font-size:1.3rem;margin-bottom:10px}
+.sam-b .b-tk-box h4{font-size:1rem;margin:18px 0 6px}
+.b-prices{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.95rem}
+.b-prices th{text-align:right;font:600 .78rem/1.2 var(--tf);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:0 0 6px}
+.b-prices td{padding:7px 0;border-top:1px solid var(--line)}
+.b-prices td+td{text-align:right;padding-left:12px;white-space:nowrap}
+.b-prices td:nth-child(2){font-weight:600;color:var(--dark)}
+.b-prices--small td:nth-child(2){font-weight:500;color:var(--text)}
+.b-notes{margin:16px 0 0;padding-left:1.1em;color:var(--muted);font-size:.9rem}
+
+/* historie */
+.b-story{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:center}
+.b-story p{color:var(--muted);font-size:1.05rem}
+.b-story-img img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
+
+/* návštěva */
+.b-visit{padding-bottom:var(--sec)}
+.b-visit h2{margin-bottom:28px}
+.b-visit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px}
+.sam-b .b-visit h3{font-size:1.15rem;margin:0 0 6px}
+.b-visit p,.b-visit li{color:var(--muted);margin:0 0 16px}
+.b-visit ul{padding-left:1.1em;margin:0}
+.b-visit li{margin:0 0 4px}
+.b-visit a{color:var(--dark);font-weight:600}
+.b-follow-links{display:flex;gap:10px;flex-wrap:wrap}
+.b-follow-links .b-btn{min-height:42px;padding:8px 16px}
+
+@media (max-width:1000px){
+  .b-exp-grid{grid-template-columns:1fr 1fr}
+  .b-tk,.b-story,.b-family{grid-template-columns:1fr}
+  .b-visit-grid{grid-template-columns:1fr 1fr}
+  .b-stats{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .b-cat{grid-template-columns:1fr}
+  .b-cat--rev .b-cat-img{order:0}
+  .b-visit-grid{grid-template-columns:1fr}
+  .sam-b .row{grid-template-columns:minmax(0,1fr) auto}
+  .sam-b .row .price{grid-column:1;grid-row:2;text-align:left;margin-top:-6px}
+  .sam-b .row .step{grid-row:1/3;grid-column:2}
+  .sam-b .sum{grid-template-columns:1fr}
+  .sam-b .sum .total{text-align:left}
+}
+@media (max-width:520px){
+  .b-exp-grid{grid-template-columns:1fr}
+  .b-card img{aspect-ratio:4/3}
+}
+
+/* patička na variantě B */
+.sam-b .foot{background:var(--dark);color:#A8A8A8;font-family:var(--tf)}
+.sam-b .foot-h{color:#fff;font-family:var(--bf)}
+.sam-b .foot a{color:#DADADA}

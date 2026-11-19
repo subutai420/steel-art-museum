@@ -14,7 +14,7 @@ function sam_lang() {
 function sam_t( $key, ...$args ) {
 	static $texts = null;
 	if ( null === $texts ) {
-		$texts = sam_texts();
+		$texts = array_replace_recursive( sam_texts(), function_exists( 'sam_texts_b' ) ? sam_texts_b() : array() );
 	}
 	$lang = sam_lang();
 	$text = $texts[ $lang ][ $key ] ?? $texts['cs'][ $key ] ?? $key;
