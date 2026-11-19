@@ -113,7 +113,10 @@ button{font:inherit;color:inherit}
 .sam-co-step{background:#fff;border-radius:4px;padding:clamp(18px,3vw,28px);margin-bottom:12px}
 .sam-co-step h2{font-size:1.25rem!important;margin:0 0 14px!important;color:var(--blued)}
 .woocommerce .sam-checkout table.shop_table{border:0;margin:0}
-.woocommerce .sam-checkout table.shop_table th,.woocommerce .sam-checkout table.shop_table td{padding:8px 0;border-top:1px solid var(--line);background:none}
+.woocommerce .sam-checkout table.shop_table th,.woocommerce .sam-checkout table.shop_table td{padding:8px 0;border:0;border-top:1px solid var(--line);background:none}
+.woocommerce-page .sam-checkout #order_review,.woocommerce .sam-checkout #order_review{float:none;width:auto;padding:0}
+.sam-checkout .sam-invoice-toggle .description{display:block!important;position:static!important;background:none!important;color:#5E636A!important;border:0!important}
+.sam-checkout .sam-invoice-toggle .description::before{display:none}
 .woocommerce .sam-checkout table.shop_table thead{display:none}
 .woocommerce .sam-checkout table.shop_table tr:first-child td{border-top:0}
 .woocommerce .sam-checkout table.shop_table td:last-child,.woocommerce .sam-checkout table.shop_table tfoot td{text-align:right}

@@ -19,7 +19,7 @@
 		var locked = ! emailOk();
 		$pay.toggleClass( 'is-locked', locked ).attr( 'aria-disabled', locked ? 'true' : null );
 		if ( ! $pay.find( '.sam-co-lock' ).length ) {
-			$pay.prepend( $( '<p class="sam-co-lock" role="status"></p>' ).text( cfg.locked || '' ) );
+			$pay.children( 'h2' ).first().after( $( '<p class="sam-co-lock" role="status"></p>' ).text( cfg.locked || '' ) );
 		}
 		$pay.find( '#place_order' ).prop( 'disabled', locked );
 	}
