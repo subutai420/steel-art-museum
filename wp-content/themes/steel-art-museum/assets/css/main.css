@@ -107,6 +107,20 @@ button{font:inherit;color:inherit}
 .woocommerce ul.order_details{padding:0}
 .woocommerce h2,.woocommerce h3{font-weight:700}
 
+/* --- kontaktní formulář [sam_contact_form] (vlastní světlá karta, funguje na tmavém i světlém podkladu) --- */
+.sam-form{background:#fff;color:var(--ink);border-radius:4px;padding:clamp(20px,3vw,32px);margin:1rem 0;text-align:left;scroll-margin-top:24px}
+.sam-form p{margin:0 0 1rem;max-width:none}
+.sam-form label{display:block;font-weight:600;color:var(--blued);margin-bottom:6px}
+.sam-form input[type=text],.sam-form input[type=email],.sam-form textarea{width:100%;border:1px solid #B9BDC2;border-radius:4px;padding:12px 14px;font:inherit;color:var(--blued);background:#fff}
+.sam-form input:focus,.sam-form textarea:focus{border-color:var(--blued);outline:2px solid var(--straw);outline-offset:1px}
+.sam-form-privacy{font-size:.9rem;color:#5E636A}
+.sam-form-privacy a{color:var(--blued)}
+.sam-form .pill{border:0}
+.sam-form-hp{position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden}
+.sam-form-notice{padding:12px 14px;border-radius:4px;font-weight:600}
+.sam-form-notice--ok{background:#DCEFD6;color:#1E4620}
+.sam-form-notice--err{background:#F8D7D5;color:#7A1D17}
+
 /* --- patička --- */
 .foot{border-top:1px solid var(--blued-3);color:var(--steel);font-size:.95rem}
 .foot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem var(--gut);padding:clamp(40px,5vw,64px) var(--gut)}
