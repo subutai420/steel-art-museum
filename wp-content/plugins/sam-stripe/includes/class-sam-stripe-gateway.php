@@ -37,6 +37,28 @@ class SAM_Stripe_Gateway extends WC_Payment_Gateway {
 
 	public static function register_static_hooks() {
 		add_action( 'template_redirect', array( __CLASS__, 'handle_return' ), 5 );
+		add_action( 'woocommerce_admin_order_data_after_billing_address', array( __CLASS__, 'render_admin_payment_details' ) );
+	}
+
+	/**
+	 * Detail platby v administraci objednávky. Název platby se při zobrazení překládá
+	 * (WCML), proto konkrétní způsob, kartu a odkaz do Stripe ukazujeme zvlášť.
+	 */
+	public static function render_admin_payment_details( $order ) {
+		if ( ! $order instanceof WC_Order || self::ID !== $order->get_payment_method() ) {
+			return;
+		}
+		$intent = (string) $order->get_meta( self::META_INTENT, true );
+		if ( ! $intent ) {
+			return;
+		}
+		$labels = array( 'card' => 'karta', 'apple_pay' => 'Apple Pay', 'google_pay' => 'Google Pay', 'link' => 'Link' );
+		$method = (string) $order->get_meta( '_sam_stripe_method', true );
+		$test   = 'test' === $order->get_meta( '_sam_stripe_mode', true );
+		$url    = 'https://dashboard.stripe.com/' . ( $test ? 'test/' : '' ) . 'payments/' . rawurlencode( $intent );
+		echo '<p><strong>Stripe:</strong> ' . esc_html( trim( ( $labels[ $method ] ?? $method ) . ' ' . (string) $order->get_meta( '_sam_stripe_card', true ) ) ?: 'čeká na platbu' )
+			. ( $test ? ' <span style="color:#b32d2e">(TEST)</span>' : '' )
+			. '<br><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener">' . esc_html( $intent ) . '</a></p>';
 	}
 
 	public function init_form_fields() {
