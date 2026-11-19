@@ -16,6 +16,13 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 7. Ve Vstupenky → Nastavení a reporty zkontrolovat datum platnosti (výchozí 30. 6. 2027) a e-mail pro reporty (info@steelartmuseum.eu).
 8. Založit účty pokladních s rolí **Pokladní** (po přihlášení rovnou skener).
 
+## Platby (sam-stripe)
+9. Do `/srv/stack/.env` doplnit **ostré** klíče `SAM_STRIPE_SECRET_KEY`, `SAM_STRIPE_PUBLISHABLE_KEY` a `SAM_STRIPE_WEBHOOK_SECRET` (webhook pro ostrou doménu, události `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`) a `docker compose up -d php cron`.
+10. `wp plugin deactivate woo-stripe-payment` – starý plugin Stripe. Refundace jeho objednávek (stripe_cc, stripe_googlepay…) převezme sam-stripe. *(19. 11. 2026)*
+11. `wp plugin activate sam-stripe` a zapnout bránu (WooCommerce → Nastavení → Platby → Stripe – karta, Apple Pay, Google Pay).
+12. Pokladna: stránka „Pokladna“ (ID 9) má místo bloku WooCommerce obsahovat shortcode `[woocommerce_checkout]` (EN překlad stránky stejně). *(19. 11. 2026, do vlastní pokladny ve fázi 4)*
+13. V Stripe zaregistrovat ostrou doménu pro Apple Pay (Nastavení → Platební metody → Domény).
+
 ## Server
-9. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
-10. nginx: v mapě `$sam_auth` už je ostrá doména bez hesla; testovací doména zůstává za heslem.
+14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
+15. nginx: v mapě `$sam_auth` už je ostrá doména bez hesla; testovací doména zůstává za heslem.
