@@ -1,0 +1,23 @@
+# Tajné údaje a lokální konfigurace
+.env
+.env.*
+wp-config.php
+auth.json
+*.pem
+*.key
+
+# Data za běhu
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup*/
+*.log
+*.sql
+*.sql.gz
+
+# Lokální nástroje
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+output/

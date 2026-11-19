@@ -1,0 +1,16 @@
+# Sjednocené konce řádků: v repozitáři i pracovní kopii vždy LF
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.gif binary
+*.woff2 binary
+*.mp4 binary
+
+# Testy a vývojové soubory se nenasazují (git archive je vynechá)
+wp-content/plugins/*/tests export-ignore
+wp-content/plugins/*/composer.json export-ignore
+wp-content/plugins/*/composer.lock export-ignore
+wp-content/mu-plugins/*/tests export-ignore
