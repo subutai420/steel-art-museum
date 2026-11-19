@@ -26,6 +26,7 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 ## Šablona (steel-art-museum)
 14a. `wp theme activate steel-art-museum` a `wp menu location assign main primary` (EN menu přiřadí WPML). GeneratePress a GP Premium můžou zůstat nainstalované kvůli návratu, obsah stránek dál potřebuje plugin GenerateBlocks. *(19. 11. 2026)*
 14b. Po přepnutí smazat stránkovou cache (`rm -rf wp-content/cache/all/*`).
+14c. Stránka Kontakt se upraví sama při prvním načtení webu (`sam-core/content-migration-20261119.php`: vlastní formulář místo Gutena Forms, pryč trustindex a mapa). Kontrola: `wp option get sam_content_migration_20261119_done`. Až potom smazat cache (14b).
 
 ## Server
 14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
