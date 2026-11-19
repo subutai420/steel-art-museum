@@ -1,6 +1,6 @@
 # Steel Art Museum
 
-Vlastní kód nového webu Steel Art Museum (WordPress + WooCommerce + WPML). Zadání, audit a plán jsou v `../ZADANI-NOVY-WEB.md`.
+Vlastní kód nového webu Steel Art Museum (WordPress + WooCommerce + WPML). Zadání, audit a plán jsou v `../ZADANI-NOVY-WEB.md`. Kroky v databázi pro ostrý přechod: `docs/PRECHOD.md`.
 
 ## Obsah repozitáře
 
