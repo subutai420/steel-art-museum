@@ -7,7 +7,7 @@
 # Nastavení z prostředí nebo ze souboru .env v kořeni repozitáře (necommituje se):
 #   SAM_SSH_HOST, SAM_SSH_PORT, SAM_SSH_USER
 #   SAM_SSH_KEY    (volitelné, výchozí ~/.ssh/sam_rosti)
-#   SAM_SITE_HOST  (volitelné, výchozí steelartmuseum.eu) – Host hlavička pro kontrolu stránek
+#   SAM_SITE_HOST  (volitelné, výchozí steelartmuseum.eu) – doména webu pro kontrolu stránek (teď testovací)
 #
 # Skript odmítne nasadit, pokud se soubory na serveru liší od commitu v značce
 # posledního nasazení (někdo je upravil přímo na serveru). Takové změny nejdřív
@@ -161,8 +161,9 @@ else
 	echo "Server už odpovídá $SHORT."
 fi
 
-# Kontrola stránek přímo na serveru (nezávisí na testovací doméně ani heslu).
-SMOKE="$(remote "for p in $SMOKE_PATHS; do sep='?'; case \"\$p\" in *\?*) sep='&';; esac; code=\$(curl -s -o /tmp/.sam-smoke -w '%{http_code}' --max-time 60 -H 'Host: $SITE_HOST' -H 'X-Forwarded-Proto: https' \"http://127.0.0.1\$p\${sep}deploycheck=\$RANDOM\"); if [ \"\$code\" != 200 ] || grep -qi 'critical error\|kritické chybě\|Fatal error\|Parse error' /tmp/.sam-smoke; then echo \"FAIL \$code \$p\"; else echo \"ok \$code \$p\"; fi; done; rm -f /tmp/.sam-smoke" < /dev/null)"
+# Kontrola stránek přímo na serveru (přes nginx, bez Rosti proxy). Testovací doména je za heslem:
+# přihlašovací údaje čte ze souboru $REMOTE_STACK/.deploy/smoke-auth (uživatel:heslo, jen root), pokud existuje.
+SMOKE="$(remote "auth=''; [ -f $REMOTE_STACK/.deploy/smoke-auth ] && auth=\"-u \$(cat $REMOTE_STACK/.deploy/smoke-auth)\"; for p in $SMOKE_PATHS; do sep='?'; case \"\$p\" in *\?*) sep='&';; esac; code=\$(curl -s -o /tmp/.sam-smoke -w '%{http_code}' --max-time 60 \$auth -H 'Host: $SITE_HOST' -H 'X-Forwarded-Proto: https' \"http://127.0.0.1\$p\${sep}deploycheck=\$RANDOM\"); if [ \"\$code\" != 200 ] || grep -qi 'critical error\|kritické chybě\|Fatal error\|Parse error' /tmp/.sam-smoke; then echo \"FAIL \$code \$p\"; else echo \"ok \$code \$p\"; fi; done; rm -f /tmp/.sam-smoke" < /dev/null)"
 echo "$SMOKE"
 if grep -q '^FAIL' <<< "$SMOKE"; then
 	echo "Značka nasazení nebyla aktualizována." >&2
