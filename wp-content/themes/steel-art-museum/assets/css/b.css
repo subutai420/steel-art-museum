@@ -211,3 +211,22 @@
   .b-feed-profile img{width:44px;height:44px}
 }
 @media (prefers-reduced-motion:reduce){.b-post img{transition:none}}
+
+/* ---- podstránky ve stylu B (ceník, kontakt, školy, FAQ, pokladna, 404) ---- */
+.sam-b{--f:var(--tf);--straw:var(--gold);--straw-hi:var(--gold-hi);--blued:var(--dark);--white:var(--paper)}
+.sam-b .display{font-family:var(--bf);font-stretch:normal;font-weight:800;line-height:1.05;letter-spacing:.005em}
+.sam-b .pill{font-family:var(--bf);border-radius:6px;min-height:48px;padding:12px 24px;color:#111}
+.sam-b .pill.ghost{color:#fff;border-color:rgba(255,255,255,.6)}
+.sam-b .page-head{background:var(--dark);color:#fff;padding:clamp(36px,6vw,72px) var(--gut) clamp(28px,4vw,48px);text-align:center}
+.sam-b .page-head h1{color:#fff;font-size:clamp(2.2rem,5.5vw,4rem);max-width:none;margin:0 auto}
+.sam-b .page-head .lead{color:#D6D6D6;margin:1rem auto 0}
+.sam-b .page-head .actions{justify-content:center}
+.sam-b .not-found .page-head{min-height:55vh;display:flex;flex-direction:column;justify-content:center}
+.sam-b .paper{background:var(--paper);color:var(--text);padding:clamp(36px,5vw,72px) var(--gut) var(--sec)}
+.sam-b .entry{max-width:var(--max)}
+.sam-b .entry h1,.sam-b .entry h2,.sam-b .entry h3,.sam-b .entry h4{font-family:var(--bf);color:var(--dark);font-weight:700}
+.sam-b .entry h2{font-size:clamp(1.7rem,3vw,2.3rem)}
+.sam-b .entry a{color:var(--dark)}
+.sam-b .entry .wp-block-button__link,.sam-b .entry .gb-button{border-radius:6px;font-family:var(--bf);font-weight:700}
+.sam-b .entry summary{color:var(--dark);font-family:var(--bf);font-size:1.1rem}
+.sam-b .sam-co-step{border:1px solid var(--line)}

@@ -55,18 +55,20 @@ function sam_is_shop_page() {
 }
 
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_style( 'sam-font', 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap', array(), null );
+	wp_enqueue_style( 'sam-font', 'https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap', array(), null );
 	list( $url, $ver ) = sam_asset( 'css/main.css' );
 	wp_enqueue_style( 'sam-main', $url, array(), $ver );
+	list( $url, $ver ) = sam_asset( 'css/b.css' );
+	wp_enqueue_style( 'sam-b', $url, array( 'sam-main' ), $ver );
 	list( $url, $ver ) = sam_asset( 'js/main.js' );
 	wp_enqueue_script( 'sam-main', $url, array(), $ver, array( 'strategy' => 'defer', 'in_footer' => true ) );
 
-	if ( is_front_page() ) {
-		list( $url, $ver ) = sam_asset( 'css/home.css' );
-		wp_enqueue_style( 'sam-home', $url, array( 'sam-main' ), $ver );
+	if ( sam_is_home() ) {
 		list( $url, $ver ) = sam_asset( 'js/home.js' );
 		wp_enqueue_script( 'sam-home', $url, array(), $ver, array( 'strategy' => 'defer', 'in_footer' => true ) );
-		wp_add_inline_script( 'sam-home', 'window.SAM_TICKETS=' . wp_json_encode( sam_ticket_offer( sam_lang() ) ) . ';', 'before' );
+		$offer              = sam_ticket_offer( sam_lang() );
+		$offer['boxOffice'] = true;
+		wp_add_inline_script( 'sam-home', 'window.SAM_TICKETS=' . wp_json_encode( $offer ) . ';', 'before' );
 	}
 
 	// Mimo obchod nepotřebujeme styly a skripty WooCommerce (rychlost).
@@ -89,17 +91,13 @@ add_filter( 'style_loader_tag', function ( $tag, $handle ) {
 	return $tag;
 }, 10, 2 );
 
-// Úvodní fotka se načítá hned (LCP).
+// Plakát úvodního videa se načítá hned (LCP).
 add_action( 'wp_head', function () {
-	if ( is_front_page() ) {
-		printf(
-			'<link rel="preload" as="image" href="%s" imagesrcset="%s" imagesizes="100vw" fetchpriority="high">' . "\n",
-			esc_url( sam_img( 'fotky00086405-1600.webp' ) ),
-			esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w, ' . sam_img( 'fotky00086405-2400.webp' ) . ' 2400w' )
-		);
+	if ( sam_is_home() ) {
+		printf( '<link rel="preload" as="image" href="%s" fetchpriority="high">' . "\n", esc_url( sam_img( 'fotky00086405-1600.webp' ) ) );
 	}
 	printf( '<link rel="icon" href="%s">' . "\n", esc_url( sam_img( 'logo.png' ) ) );
-	echo '<meta name="theme-color" content="#0F1012">' . "\n";
+	echo '<meta name="theme-color" content="#141414">' . "\n";
 }, 2 );
 
 // Emoji skripty WordPressu nepotřebujeme.
@@ -108,6 +106,7 @@ remove_action( 'wp_print_styles', 'print_emoji_styles' );
 remove_action( 'wp_head', 'wp_generator' );
 
 add_filter( 'body_class', function ( $classes ) {
+	$classes[] = 'sam-b';
 	if ( sam_is_shop_page() ) {
 		$classes[] = 'sam-shop';
 	}
@@ -168,36 +167,16 @@ function sam_show_page_title() {
 	return ! ( $id && get_post_meta( $id, '_generate-disable-headline', true ) );
 }
 
-/* ---------------- Varianta B domovské stránky (page-templates/home-b.php) ---------------- */
+/* ---------------- Domovská stránka ---------------- */
 
-function sam_is_home_b() {
-	return is_page_template( 'page-templates/home-b.php' );
+/** Domovská stránka (i dočasná srovnávací /novy-design/ se šablonou home-b). */
+function sam_is_home() {
+	return is_front_page() || is_page_template( 'page-templates/home-b.php' );
 }
 
-add_action( 'wp_enqueue_scripts', function () {
-	if ( ! sam_is_home_b() ) {
-		return;
-	}
-	wp_enqueue_style( 'sam-font-b', 'https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap', array(), null );
-	list( $url, $ver ) = sam_asset( 'css/b.css' );
-	wp_enqueue_style( 'sam-b', $url, array( 'sam-main' ), $ver );
-	list( $url, $ver ) = sam_asset( 'js/home.js' );
-	wp_enqueue_script( 'sam-home', $url, array(), $ver, array( 'strategy' => 'defer', 'in_footer' => true ) );
-	$offer             = sam_ticket_offer( sam_lang() );
-	$offer['boxOffice'] = true;
-	wp_add_inline_script( 'sam-home', 'window.SAM_TICKETS=' . wp_json_encode( $offer ) . ';', 'before' );
-}, 25 );
-
-add_filter( 'body_class', function ( $classes ) {
-	if ( sam_is_home_b() ) {
-		$classes[] = 'sam-b';
-	}
-	return $classes;
-} );
-
-// Na variantě B vedou kotvy z menu (#co-uvidite, #historie) na sekce této stránky.
+// Na domovské stránce vedou kotvy z menu (#co-uvidite, #historie) přímo na sekce.
 add_filter( 'nav_menu_link_attributes', function ( $atts ) {
-	if ( sam_is_home_b() && ! empty( $atts['href'] ) && false !== strpos( $atts['href'], '#' ) ) {
+	if ( sam_is_home() && ! empty( $atts['href'] ) && false !== strpos( $atts['href'], '#' ) ) {
 		$atts['href'] = '#' . substr( $atts['href'], strpos( $atts['href'], '#' ) + 1 );
 		unset( $atts['aria-current'] );
 	}

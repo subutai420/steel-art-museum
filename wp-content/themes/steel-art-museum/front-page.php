@@ -1,185 +1,255 @@
 <?php
 /**
- * Domovská stránka (CZ i EN přes WPML). Obsah je v šabloně, texty v inc/i18n.php.
+ * Domovská stránka (CZ i EN přes WPML). Blíž původnímu webu: video v úvodu, zážitek a fotky, recenze, výstava, vstupenky níž
+ * s ceníkem na pokladně, historie a praktické informace. Kalkulačka a košík jsou stejné
+ * jako u varianty A (inc/tickets.php, assets/js/home.js).
  */
 defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-$lang   = sam_lang();
-$offer  = sam_ticket_offer( $lang );
-$valid  = sam_tickets_valid_until_text( $lang );
-$prices = sam_box_office_prices( $lang );
-$img    = 'sam_img';
+$lang    = sam_lang();
+$en      = 'en' === $lang;
+$offer   = sam_ticket_offer( $lang );
+$valid   = sam_tickets_valid_until_text( $lang );
+$prices  = sam_box_office_prices( $lang );
+$sources = class_exists( 'SAM_Reviews' ) ? SAM_Reviews::sources() : array();
+$reviews = class_exists( 'SAM_Reviews' ) ? SAM_Reviews::items( 12, $lang ) : array();
+$uploads = wp_get_upload_dir()['baseurl'];
+
+/** Fotka z knihovny médií (srcset podle velikostí WordPressu). */
+$photo = static function ( $id, $alt, $sizes, $class = '' ) {
+	return wp_get_attachment_image( $id, 'large', false, array( 'alt' => $alt, 'sizes' => $sizes, 'loading' => 'lazy', 'class' => $class ) );
+};
 ?>
-<main id="obsah">
-<section class="hero">
-	<img class="hero-img" src="<?php echo esc_url( $img( 'fotky00086405-1600.webp' ) ); ?>" srcset="<?php echo esc_attr( $img( 'fotky00086405-800.webp' ) . ' 800w, ' . $img( 'fotky00086405-1600.webp' ) . ' 1600w, ' . $img( 'fotky00086405-2400.webp' ) . ' 2400w' ); ?>" sizes="100vw" alt="<?php echo esc_attr( sam_t( 'hero_alt' ) ); ?>" fetchpriority="high" width="2400" height="1350">
-	<div class="hero-in">
-		<h1 class="display"><span><?php echo esc_html( sam_t( 'hero_1' ) ); ?></span> <span><?php echo esc_html( sam_t( 'hero_2' ) ); ?></span></h1>
-		<div class="hero-row">
-			<div>
-				<p><?php echo esc_html( sam_t( 'hero_text' ) ); ?></p>
-				<p class="hero-facts"><span><?php echo wp_kses_post( sam_t( 'hours_short' ) ); ?></span><span><?php echo wp_kses_post( sam_t( 'address_short' ) ); ?></span></p>
-			</div>
-			<div class="hero-cta"><a class="pill" href="#vstupenky"><?php echo esc_html( sam_t( 'buy' ) ); ?></a><a class="pill ghost" href="#co-uvidite"><?php echo esc_html( sam_t( 'hero_more' ) ); ?></a></div>
-		</div>
+<main id="obsah" class="b-main">
+
+<section class="b-hero">
+	<video class="b-hero-video" muted loop playsinline preload="none" poster="<?php echo esc_url( sam_img( 'fotky00086405-1600.webp' ) ); ?>"
+		data-desktop="<?php echo esc_url( $uploads . '/2026/02/hp_desktop.webm' ); ?>" data-mobile="<?php echo esc_url( $uploads . '/2026/02/hp_mob.webm' ); ?>"></video>
+	<div class="b-hero-in">
+		<h1><?php echo esc_html( sam_t( 'b_hero_h' ) ); ?></h1>
+		<p class="b-hero-sub"><?php echo esc_html( sam_t( 'b_hero_p' ) ); ?></p>
+		<?php if ( $sources ) : ?>
+		<p class="b-hero-ratings">
+			<?php foreach ( $sources as $key => $s ) : ?>
+			<a href="<?php echo esc_url( $s['url'] ); ?>" target="_blank" rel="noopener"><?php echo sam_rating_mark( $key, $s['rating'] ); // phpcs:ignore ?> <b><?php echo esc_html( sam_rating( $s['rating'], $lang ) ); ?></b> <?php echo esc_html( $s['name'] ); ?></a>
+			<?php endforeach; ?>
+		</p>
+		<?php endif; ?>
+		<p class="b-hero-cta"><a class="b-btn" href="#zazitek"><?php echo esc_html( sam_t( 'b_hero_cta' ) ); ?></a></p>
 	</div>
 </section>
 
-<section class="tickets" id="vstupenky" aria-labelledby="tk-h">
-	<div class="tk">
-		<div class="tk-promo">
-			<?php if ( $offer['promo'] ) : ?>
-			<h2 class="display" id="tk-h"><?php echo wp_kses_post( sam_t( 'promo_h' ) ); ?></h2>
-			<p><?php echo esc_html( sam_t( 'promo_p', $valid ) ); ?></p>
-			<div class="clock" role="timer" aria-label="<?php echo esc_attr( sam_t( 'promo_clock' ) ); ?>" data-end="<?php echo esc_attr( $offer['end'] ); ?>">
-				<div><b data-cd="d">–</b><small><?php echo esc_html( sam_t( 'days' ) ); ?></small></div>
-				<div><b data-cd="h">–</b><small><?php echo esc_html( sam_t( 'hours' ) ); ?></small></div>
-				<div><b data-cd="m">–</b><small><?php echo esc_html( sam_t( 'minutes' ) ); ?></small></div>
-			</div>
-			<?php else : ?>
-			<h2 class="display" id="tk-h"><?php echo wp_kses_post( sam_t( 'online_h' ) ); ?></h2>
-			<p><?php echo esc_html( sam_t( 'online_p', $valid ) ); ?></p>
-			<?php endif; ?>
+<section class="b-stats" aria-label="Steel Art Museum v číslech">
+	<p><b><?php echo $en ? '120+' : 'Přes 120'; ?></b><?php echo esc_html( sam_t( 'b_stat_1' ) ); ?></p>
+	<p><b><?php echo $en ? '1,000,000' : '1 000 000'; ?></b><?php echo esc_html( sam_t( 'b_stat_2' ) ); ?></p>
+	<p><b><?php echo $en ? '1,500 m²' : '1 500 m²'; ?></b><?php echo esc_html( sam_t( 'b_stat_3' ) ); ?></p>
+	<p><b><?php echo $en ? '150 mil.' : '150 mil. Kč'; ?></b><?php echo esc_html( sam_t( 'b_stat_4' ) ); ?></p>
+</section>
+
+<section class="b-sec b-exp" id="zazitek" aria-labelledby="exp-h">
+	<div class="b-head">
+		<p class="b-kicker"><?php echo esc_html( sam_t( 'b_exp_kicker' ) ); ?></p>
+		<h2 id="exp-h"><?php echo esc_html( sam_t( 'b_exp_h' ) ); ?></h2>
+		<p class="b-lead"><?php echo esc_html( sam_t( 'b_exp_p' ) ); ?></p>
+	</div>
+	<div class="b-exp-grid">
+		<?php
+		$cards = array(
+			array( sam_img( '6l4a0460-800.webp' ), sam_img( '6l4a0460-1600.webp' ), 'b_exp_1', sam_t( 'try_1_alt' ) ),
+			array( sam_img( 'soubor-1-800.webp' ), sam_img( 'soubor-1-1600.webp' ), 'b_exp_2', sam_t( 'try_2_alt' ) ),
+			array( sam_img( '6l4a0465-800.webp' ), sam_img( '6l4a0465-1600.webp' ), 'b_exp_3', sam_t( 'try_3_alt' ) ),
+		);
+		foreach ( $cards as $c ) :
+			?>
+		<figure class="b-card">
+			<img src="<?php echo esc_url( $c[0] ); ?>" srcset="<?php echo esc_attr( $c[0] . ' 800w, ' . $c[1] . ' 1600w' ); ?>" sizes="(max-width:760px) 100vw, 33vw" alt="<?php echo esc_attr( $c[3] ); ?>" loading="lazy">
+			<figcaption><h3><?php echo esc_html( sam_t( $c[2] ) ); ?></h3><p><?php echo esc_html( sam_t( $c[2] . '_p' ) ); ?></p></figcaption>
+		</figure>
+		<?php endforeach; ?>
+		<figure class="b-card">
+			<?php echo $photo( 1577, $en ? 'Steel Optimus Prime, E.T. and Bumblebee' : 'Ocelový Optimus Prime, E.T. a Bumblebee', '(max-width:760px) 100vw, 33vw' ); // phpcs:ignore ?>
+			<figcaption><h3><?php echo esc_html( sam_t( 'b_exp_4' ) ); ?></h3><p><?php echo esc_html( sam_t( 'b_exp_4_p' ) ); ?></p></figcaption>
+		</figure>
+	</div>
+</section>
+
+<?php if ( $sources || $reviews ) : ?>
+<section class="b-sec b-reviews" id="recenze" aria-labelledby="rev-h">
+	<div class="b-head b-head--row">
+		<div>
+			<p class="b-kicker"><?php echo esc_html( sam_t( 'b_rev_kicker' ) ); ?></p>
+			<h2 id="rev-h"><?php echo esc_html( sam_t( 'b_rev_h' ) ); ?></h2>
 		</div>
-		<div class="tk-calc">
-			<h3 class="sr"><?php echo esc_html( sam_t( 'calc_h' ) ); ?></h3>
+		<div class="b-scores">
+			<?php foreach ( $sources as $key => $s ) : ?>
+			<a class="b-score b-score--<?php echo esc_attr( $key ); ?>" href="<?php echo esc_url( $s['url'] ); ?>" target="_blank" rel="noopener">
+				<span class="b-score-num"><?php echo esc_html( sam_rating( $s['rating'], $lang ) ); ?></span>
+				<span><?php echo sam_rating_mark( $key, $s['rating'] ); // phpcs:ignore ?><span class="b-score-src"><?php echo esc_html( $s['name'] ); ?><?php echo $s['count'] ? ' · ' . esc_html( sprintf( sam_t( 'b_rev_based' ), sam_number( $s['count'], $lang ) ) ) : ''; ?></span></span>
+			</a>
+			<?php endforeach; ?>
+		</div>
+	</div>
+	<?php if ( $reviews ) : ?>
+	<div class="b-rev-track" tabindex="0" aria-label="<?php echo esc_attr( sam_t( 'b_rev_h' ) ); ?>">
+		<?php foreach ( $reviews as $r ) : ?>
+		<blockquote class="b-rev b-rev--<?php echo esc_attr( $r['source'] ); ?>">
+			<?php echo sam_rating_mark( $r['source'], (int) $r['rating'] ); // phpcs:ignore ?>
+			<p><?php echo esc_html( $r['text'] ); ?></p>
+			<footer><b><?php echo esc_html( $r['author'] ); ?></b> · <?php echo esc_html( 'tripadvisor' === $r['source'] ? 'Tripadvisor' : ucfirst( $r['source'] ) ); ?></footer>
+		</blockquote>
+		<?php endforeach; ?>
+	</div>
+	<?php endif; ?>
+	<?php if ( $sources ) : ?>
+	<p class="b-center b-rev-links">
+		<?php foreach ( $sources as $s ) : ?>
+		<a class="b-link" href="<?php echo esc_url( $s['url'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( sam_t( 'b_rev_all' ) . ' ' . sprintf( sam_t( 'b_rev_on' ), $s['name'] ) ); ?></a>
+		<?php endforeach; ?>
+	</p>
+	<?php endif; ?>
+</section>
+<?php endif; ?>
+
+<section class="b-sec b-feed" id="fotky" aria-labelledby="feed-h">
+	<div class="b-feed-head">
+		<a class="b-feed-profile" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener">
+			<img src="<?php echo esc_url( sam_img( 'logo.webp' ) ); ?>" alt="" width="56" height="56">
+			<span><b>steelartmuseum</b><span id="feed-h"><?php echo esc_html( sam_t( 'b_feed_h' ) ); ?></span></span>
+		</a>
+		<a class="b-btn b-btn--ig" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener"><?php echo sam_icon( 'instagram' ); // phpcs:ignore ?> <?php echo esc_html( sam_t( 'b_feed_follow' ) ); ?></a>
+	</div>
+	<ul class="b-feed-grid">
+		<?php foreach ( sam_t( 'b_feed' ) as $feed_id => $feed_caption ) : ?>
+		<li>
+			<a class="b-post" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( $feed_caption . ' – Instagram' ); ?>">
+				<?php echo wp_get_attachment_image( $feed_id, 'medium_large', false, array( 'alt' => $feed_caption, 'sizes' => '(max-width:760px) 34vw, 17vw', 'loading' => 'lazy' ) ); // phpcs:ignore ?>
+				<span class="b-post-cap"><?php echo esc_html( $feed_caption ); ?></span>
+			</a>
+		</li>
+		<?php endforeach; ?>
+	</ul>
+	<p class="b-center"><a class="b-link" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener"><?php echo esc_html( sam_t( 'b_feed_more' ) ); ?></a></p>
+</section>
+
+<section class="b-sec b-see" id="co-uvidite" aria-labelledby="see-h">
+	<div class="b-head">
+		<h2 id="see-h"><?php echo esc_html( sam_t( 'b_see_h' ) ); ?></h2>
+		<p class="b-lead"><?php echo esc_html( sam_t( 'b_see_p' ) ); ?></p>
+	</div>
+	<?php
+	$cats = array(
+		array( 1584, 'b_cat_1', $en ? 'Steel Optimus Prime with a sword' : 'Ocelový Optimus Prime s mečem' ),
+		array( 1582, 'b_cat_2', $en ? 'Steel replica of a Lamborghini' : 'Ocelová replika Lamborghini' ),
+		array( 1583, 'b_cat_3', $en ? 'Steel Elvis and Michael Jackson' : 'Ocelový Elvis a Michael Jackson' ),
+		array( 1601, 'b_cat_4', $en ? 'Steel dinosaurs over a lava floor' : 'Ocelový triceratops a další dinosauři nad lávou' ),
+		array( 1077, 'b_cat_5', $en ? 'Children with steel Minions' : 'Děti s ocelovými Mimoni' ),
+	);
+	foreach ( $cats as $i => $cat ) :
+		?>
+	<article class="b-cat<?php echo $i % 2 ? ' b-cat--rev' : ''; ?>">
+		<div class="b-cat-img"><?php echo $photo( $cat[0], $cat[2], '(max-width:760px) 100vw, 50vw' ); // phpcs:ignore ?></div>
+		<div class="b-cat-txt">
+			<h3><?php echo esc_html( sam_t( $cat[1] ) ); ?></h3>
+			<p><?php echo esc_html( sam_t( $cat[1] . '_p' ) ); ?></p>
+		</div>
+	</article>
+	<?php endforeach; ?>
+</section>
+
+<section class="b-family" aria-labelledby="fam-h">
+	<div class="b-family-img"><img src="<?php echo esc_url( sam_img( '6l4a5712-800.webp' ) ); ?>" alt="<?php echo esc_attr( sam_t( 'tile_4_alt' ) ); ?>" loading="lazy"></div>
+	<div class="b-family-txt">
+		<h2 id="fam-h"><?php echo esc_html( sam_t( 'b_family_h' ) ); ?></h2>
+		<p><?php echo esc_html( sam_t( 'b_family_p' ) ); ?></p>
+		<ul><?php foreach ( sam_t( 'b_family_li' ) as $li ) : ?><li><?php echo esc_html( $li ); ?></li><?php endforeach; ?></ul>
+	</div>
+</section>
+
+<section class="b-sec b-tickets" id="vstupenky" aria-labelledby="tk-h">
+	<div class="b-head">
+		<p class="b-kicker"><?php echo esc_html( sam_t( 'b_tk_kicker' ) ); ?></p>
+		<h2 id="tk-h"><?php echo esc_html( sam_t( 'b_tk_h' ) ); ?></h2>
+		<p class="b-lead"><?php echo esc_html( sam_t( 'b_tk_p', $valid ) ); ?></p>
+		<?php if ( $offer['promo'] ) : ?><p class="b-promo"><?php echo esc_html( sam_t( 'b_promo' ) ); ?></p><?php endif; ?>
+	</div>
+	<div class="b-tk">
+		<div class="b-tk-calc">
 			<ul class="rows" id="rows"></ul>
 			<div class="sum">
 				<p class="msg" id="msg" aria-live="polite"></p>
 				<p class="total"><small><?php echo esc_html( sam_t( 'total' ) ); ?></small><span id="was" class="was"></span><span id="total">–</span></p>
-				<button class="pill" id="buy" type="button" disabled><?php echo esc_html( sam_t( 'buy' ) ); ?></button>
+				<button class="b-btn b-btn--buy" id="buy" type="button" disabled><?php echo esc_html( sam_t( 'buy' ) ); ?></button>
 			</div>
-			<ul class="notes">
-				<li><?php echo esc_html( sam_t( 'note_under3' ) ); ?></li>
-				<?php if ( $offer['promo'] ) : ?><li><?php echo esc_html( sam_t( 'note_promo' ) ); ?></li><?php endif; ?>
-				<li><?php echo esc_html( sam_t( 'note_groups' ) ); ?></li>
-			</ul>
 		</div>
-	</div>
-</section>
-
-<section class="try" aria-labelledby="try-h">
-	<div>
-		<h2 class="display h2" id="try-h"><?php echo esc_html( sam_t( 'try_h' ) ); ?></h2>
-		<div class="choices" role="group" aria-label="<?php echo esc_attr( sam_t( 'try_group' ) ); ?>">
-			<?php
-			$tries = array(
-				array( '6l4a0460', 'try_1' ),
-				array( 'soubor-1', 'try_2' ),
-				array( '6l4a0465', 'try_3' ),
-			);
-			foreach ( $tries as $i => $t ) {
-				printf(
-					'<button type="button" aria-pressed="%s" data-img="%s" data-alt="%s" data-text="%s">%s</button>',
-					0 === $i ? 'true' : 'false',
-					esc_url( $img( $t[0] . '-1600.webp' ) ),
-					esc_attr( sam_t( $t[1] . '_alt' ) ),
-					esc_attr( sam_t( $t[1] . '_t' ) ),
-					esc_html( sam_t( $t[1] ) )
-				);
-			}
-			?>
-		</div>
-		<p class="try-text" id="try-text" aria-live="polite"><?php echo esc_html( sam_t( 'try_1_t' ) ); ?></p>
-	</div>
-	<div class="try-photo"><img id="try-img" src="<?php echo esc_url( $img( '6l4a0460-1600.webp' ) ); ?>" srcset="<?php echo esc_attr( $img( '6l4a0460-800.webp' ) . ' 800w, ' . $img( '6l4a0460-1600.webp' ) . ' 1600w' ); ?>" sizes="(max-width:1000px) 100vw, 58vw" alt="<?php echo esc_attr( sam_t( 'try_1_alt' ) ); ?>" loading="lazy" width="1600" height="1200"></div>
-</section>
-
-<section class="coll" id="co-uvidite" aria-labelledby="coll-h">
-	<div class="coll-head">
-		<h2 class="display h2" id="coll-h"><?php echo esc_html( sam_t( 'coll_h' ) ); ?></h2>
-		<p class="lead"><?php echo esc_html( sam_t( 'coll_p' ) ); ?></p>
-	</div>
-	<div class="grid">
-		<figure class="tile t1"><img src="<?php echo esc_url( $img( '6l4a0462-1600.webp' ) ); ?>" srcset="<?php echo esc_attr( $img( '6l4a0462-800.webp' ) . ' 800w, ' . $img( '6l4a0462-1600.webp' ) . ' 1600w' ); ?>" sizes="(max-width:1000px) 100vw, 66vw" alt="<?php echo esc_attr( sam_t( 'tile_1_alt' ) ); ?>" loading="lazy"><h3 class="display"><?php echo esc_html( sam_t( 'tile_1' ) ); ?></h3></figure>
-		<figure class="tile t2"><img src="<?php echo esc_url( $img( 'reels_1_01_03_32_13-800.webp' ) ); ?>" alt="<?php echo esc_attr( sam_t( 'tile_2_alt' ) ); ?>" loading="lazy"><h3 class="display"><?php echo esc_html( sam_t( 'tile_2' ) ); ?></h3></figure>
-		<figure class="tile t3"><img src="<?php echo esc_url( $img( '6l4a0332-800.webp' ) ); ?>" alt="<?php echo esc_attr( sam_t( 'tile_3_alt' ) ); ?>" loading="lazy"><h3 class="display"><?php echo esc_html( sam_t( 'tile_3' ) ); ?></h3></figure>
-		<figure class="tile t4"><img src="<?php echo esc_url( $img( '6l4a5712-800.webp' ) ); ?>" alt="<?php echo esc_attr( sam_t( 'tile_4_alt' ) ); ?>" loading="lazy"><h3 class="display"><?php echo esc_html( sam_t( 'tile_4' ) ); ?></h3></figure>
-		<div class="tile t5"><h3 class="display"><?php echo esc_html( sam_t( 'tile_5' ) ); ?></h3><p><?php echo esc_html( sam_t( 'tile_5_p' ) ); ?></p></div>
-	</div>
-</section>
-
-<section class="story" id="historie" aria-labelledby="story-h">
-	<h2 class="big" id="story-h"><?php echo esc_html( sam_t( 'story_h' ) ); ?></h2>
-	<div class="txt">
-		<p><?php echo esc_html( sam_t( 'story_p1' ) ); ?></p>
-		<p><?php echo esc_html( sam_t( 'story_p2' ) ); ?></p>
-	</div>
-	<div class="figures">
-		<p><b>120</b><?php echo esc_html( sam_t( 'fig_1' ) ); ?></p>
-		<p><b>500+</b><?php echo esc_html( sam_t( 'fig_2' ) ); ?></p>
-		<p><b><?php echo 'en' === $lang ? '1,500 m²' : '1 500 m²'; ?></b><?php echo esc_html( sam_t( 'fig_3' ) ); ?></p>
-		<p><b><?php echo 'en' === $lang ? '1,000,000' : '1 000 000'; ?></b><?php echo esc_html( sam_t( 'fig_4' ) ); ?></p>
-	</div>
-</section>
-
-<section class="visit" id="navsteva" aria-labelledby="visit-h">
-	<h2 class="display h2" id="visit-h"><?php echo esc_html( sam_t( 'visit_h' ) ); ?></h2>
-	<div class="visit-grid">
-		<div>
-			<h3><?php echo esc_html( sam_t( 'visit_hours' ) ); ?></h3>
-			<p><?php echo esc_html( sam_t( 'visit_hours_p' ) ); ?></p>
-			<h3 class="mt"><?php echo esc_html( sam_t( 'visit_addr' ) ); ?></h3>
-			<p><?php echo esc_html( sam_t( 'visit_addr_p' ) ); ?> <a href="https://maps.google.com/?q=Celetn%C3%A1+15,+Praha+1"><?php echo esc_html( sam_t( 'visit_map' ) ); ?></a></p>
-		</div>
-		<div>
-			<h3><?php echo esc_html( sam_t( 'visit_good' ) ); ?></h3>
-			<ul>
-				<?php foreach ( sam_t( 'visit_li' ) as $li ) : ?>
-				<li><?php echo esc_html( $li ); ?></li>
+		<aside class="b-tk-box" aria-labelledby="box-h">
+			<h3 id="box-h"><?php echo esc_html( sam_t( 'b_box_h' ) ); ?></h3>
+			<table class="b-prices">
+				<thead><tr><th></th><th><?php echo esc_html( sam_t( 'b_box_online' ) ); ?></th><th><?php echo esc_html( sam_t( 'b_box_door' ) ); ?></th></tr></thead>
+				<tbody>
+				<?php foreach ( $offer['rows'] as $row ) : ?>
+					<tr><td><?php echo esc_html( $row['n'] ); ?></td><td><?php echo esc_html( sam_money( $row['p'], $lang ) ); ?></td><td><?php echo esc_html( sam_money( $row['r'], $lang ) ); ?></td></tr>
 				<?php endforeach; ?>
-			</ul>
-		</div>
-		<div>
-			<h3><?php echo esc_html( sam_t( 'visit_prices' ) ); ?></h3>
-			<table class="prices">
-				<tr><td><?php echo esc_html( sam_t( 'p_adult' ) ); ?></td><td><?php echo esc_html( $prices['adult'] ); ?></td></tr>
-				<tr><td><?php echo esc_html( sam_t( 'p_reduced' ) ); ?></td><td><?php echo esc_html( $prices['reduced'] ); ?></td></tr>
-				<tr><td><?php echo esc_html( sam_t( 'p_child' ) ); ?></td><td><?php echo esc_html( $prices['child'] ); ?></td></tr>
-				<tr><td><?php echo esc_html( sam_t( 'p_under3' ) ); ?></td><td><?php echo esc_html( sam_t( 'free' ) ); ?></td></tr>
-				<?php if ( $prices['fam21'] ) : ?><tr class="gap"><td><?php echo esc_html( sam_t( 'p_fam', '2 + 1' ) ); ?></td><td><?php echo esc_html( $prices['fam21'] ); ?></td></tr><?php endif; ?>
+				<tr><td><?php echo esc_html( sam_t( 'p_under3' ) ); ?></td><td colspan="2"><?php echo esc_html( sam_t( 'free' ) ); ?></td></tr>
+				</tbody>
+			</table>
+			<h4><?php echo esc_html( sam_t( 'b_box_more' ) ); ?></h4>
+			<table class="b-prices b-prices--small">
+				<?php if ( $prices['fam21'] ) : ?><tr><td><?php echo esc_html( sam_t( 'p_fam', '2 + 1' ) ); ?></td><td><?php echo esc_html( $prices['fam21'] ); ?></td></tr><?php endif; ?>
 				<?php if ( $prices['fam22'] ) : ?><tr><td><?php echo esc_html( sam_t( 'p_fam', '2 + 2' ) ); ?></td><td><?php echo esc_html( $prices['fam22'] ); ?></td></tr><?php endif; ?>
 				<?php if ( $prices['fam23'] ) : ?><tr><td><?php echo esc_html( sam_t( 'p_fam', '2 + 3' ) ); ?></td><td><?php echo esc_html( $prices['fam23'] ); ?></td></tr><?php endif; ?>
 				<?php if ( $prices['group'] ) : ?><tr><td><?php echo esc_html( sam_t( 'p_group' ) ); ?></td><td><?php echo esc_html( $prices['group'] ); ?></td></tr><?php endif; ?>
 			</table>
-			<p class="mt-s"><a href="<?php echo esc_url( sam_page_url( 1529 ) ); ?>"><?php echo esc_html( sam_t( 'visit_all_prices' ) ); ?></a></p>
-		</div>
+			<ul class="b-notes">
+				<li><?php echo esc_html( sam_t( 'note_under3' ) ); ?></li>
+				<?php if ( $offer['promo'] ) : ?><li><?php echo esc_html( sam_t( 'note_promo' ) ); ?></li><?php endif; ?>
+				<li><?php echo esc_html( sam_t( 'note_groups' ) ); ?></li>
+			</ul>
+		</aside>
 	</div>
 </section>
 
-<section class="schools" id="skoly" aria-labelledby="sch-h">
-	<div class="schools-in">
+<section class="b-sec b-story" id="historie" aria-labelledby="story-h">
+	<div class="b-story-txt">
+		<p class="b-kicker"><?php echo esc_html( sam_t( 'b_story_kicker' ) ); ?></p>
+		<h2 id="story-h"><?php echo esc_html( sam_t( 'b_story_h' ) ); ?></h2>
+		<p><?php echo esc_html( sam_t( 'b_story_p1' ) ); ?></p>
+		<p><?php echo esc_html( sam_t( 'b_story_p2' ) ); ?></p>
+	</div>
+	<div class="b-story-img"><img src="<?php echo esc_url( sam_img( '6l4a0462-800.webp' ) ); ?>" srcset="<?php echo esc_attr( sam_img( '6l4a0462-800.webp' ) . ' 800w, ' . sam_img( '6l4a0462-1600.webp' ) . ' 1600w' ); ?>" sizes="(max-width:760px) 100vw, 50vw" alt="<?php echo esc_attr( sam_t( 'tile_1_alt' ) ); ?>" loading="lazy"></div>
+</section>
+
+<section class="b-sec b-visit" id="navsteva" aria-labelledby="visit-h">
+	<h2 id="visit-h"><?php echo esc_html( sam_t( 'b_visit_h' ) ); ?></h2>
+	<div class="b-visit-grid">
 		<div>
-			<h2 class="display h2" id="sch-h"><?php echo esc_html( sam_t( 'sch_h' ) ); ?></h2>
-			<p class="mt"><?php echo esc_html( sam_t( 'sch_p1' ) ); ?></p>
-			<p><?php echo esc_html( sam_t( 'sch_p2' ) ); ?></p>
-			<a class="pill dark" href="<?php echo esc_url( sam_page_url( 45 ) ); ?>"><?php echo esc_html( sam_t( 'sch_more' ) ); ?></a>
+			<h3><?php echo esc_html( sam_t( 'visit_hours' ) ); ?></h3>
+			<p><?php echo esc_html( sam_t( 'visit_hours_p' ) ); ?></p>
+			<h3><?php echo esc_html( sam_t( 'visit_addr' ) ); ?></h3>
+			<p><?php echo esc_html( sam_t( 'visit_addr_p' ) ); ?> <a href="https://maps.google.com/?q=Celetn%C3%A1+15,+Praha+1"><?php echo esc_html( sam_t( 'visit_map' ) ); ?></a></p>
 		</div>
-		<div class="school-prices">
-			<div><b><?php echo 'en' === $lang ? 'CZK 135' : '135 Kč'; ?></b><?php echo esc_html( sam_t( 'sch_a' ) ); ?></div>
-			<div><b><?php echo 'en' === $lang ? 'CZK 169' : '169 Kč'; ?></b><?php echo esc_html( sam_t( 'sch_b' ) ); ?></div>
-			<div><b><?php echo esc_html( sam_t( 'sch_free' ) ); ?></b><?php echo esc_html( sam_t( 'sch_c' ) ); ?></div>
+		<div>
+			<h3><?php echo esc_html( sam_t( 'visit_good' ) ); ?></h3>
+			<ul><?php foreach ( sam_t( 'visit_li' ) as $li ) : ?><li><?php echo esc_html( $li ); ?></li><?php endforeach; ?></ul>
 		</div>
-	</div>
-</section>
-
-<section class="end" aria-labelledby="end-h">
-	<div>
-		<h2 class="display" id="end-h"><?php echo esc_html( sam_t( 'end_h' ) ); ?></h2>
-		<p class="mt"><a class="pill" href="#vstupenky"><?php echo esc_html( sam_t( 'buy' ) ); ?></a></p>
-	</div>
-	<div>
-		<p class="rating"><?php echo wp_kses_post( sam_t( 'rating' ) ); ?></p>
-		<p class="contact"><?php echo esc_html( sam_t( 'questions' ) ); ?>: <a href="mailto:info@steelartmuseum.eu">info@steelartmuseum.eu</a><br><?php echo esc_html( sam_t( 'phone' ) ); ?>: <a href="tel:+420727850257">+420 727 850 257</a></p>
+		<div class="b-follow">
+			<h3><?php echo esc_html( sam_t( 'b_follow_h' ) ); ?></h3>
+			<p><?php echo esc_html( sam_t( 'b_follow_p' ) ); ?></p>
+			<p class="b-follow-links">
+				<a class="b-btn b-btn--outline" href="https://www.instagram.com/steelartmuseum/" rel="noopener"><?php echo sam_icon( 'instagram' ); // phpcs:ignore ?> Instagram</a>
+				<a class="b-btn b-btn--outline" href="https://facebook.com/steelartmuseum" rel="noopener"><?php echo sam_icon( 'facebook' ); // phpcs:ignore ?> Facebook</a>
+			</p>
+			<h3><?php echo esc_html( sam_t( 'b_q_h' ) ); ?></h3>
+			<p><a href="tel:+420727850257">+420 727 850 257</a> · <a href="mailto:info@steelartmuseum.eu">info@steelartmuseum.eu</a></p>
+		</div>
 	</div>
 </section>
 </main>
-
-<div class="bar" id="bar" aria-hidden="true">
-	<span id="bar-txt"></span>
-	<a class="pill" href="#vstupenky" tabindex="-1"><?php echo esc_html( sam_t( 'buy_short' ) ); ?></a>
-</div>
+<script>
+/* Úvodní video: menší verze pro mobil, načte se až po vykreslení stránky (jako na původním webu). */
+(function(){var v=document.querySelector('.b-hero-video');if(!v||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+addEventListener('load',function(){v.src=innerWidth<768?v.dataset.mobile:v.dataset.desktop;v.play().catch(function(){});});})();
+</script>
 <?php
 get_footer();
