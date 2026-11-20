@@ -56,13 +56,21 @@ final class SAM_Tickets_Documents {
 		if ( ! $order instanceof WC_Order || 'en' !== self::order_language( $order ) ) {
 			return;
 		}
-		add_filter( 'woocommerce_email_setup_locale', '__return_false' );
+		// Přepíná se až v okamžiku skládání e-mailu (WC_Email::setup_locale): WCML na prioritě 9
+		// přepne jazyk podle post meta, které u objednávek v HPOS není, tj. zpět na češtinu.
+		add_filter( 'woocommerce_email_setup_locale', array( $this, 'refund_email_switch_en' ) );
 		add_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ) );
-		$this->email_locale_switched = switch_to_locale( 'en_US' );
+	}
+
+	public function refund_email_switch_en() {
+		if ( ! $this->email_locale_switched ) {
+			$this->email_locale_switched = switch_to_locale( 'en_US' );
+		}
+		return false;
 	}
 
 	public function refund_email_locale_end() {
-		remove_filter( 'woocommerce_email_setup_locale', '__return_false' );
+		remove_filter( 'woocommerce_email_setup_locale', array( $this, 'refund_email_switch_en' ) );
 		remove_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ) );
 		if ( $this->email_locale_switched ) {
 			restore_previous_locale();
