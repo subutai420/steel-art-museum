@@ -4,8 +4,11 @@
  *
  * - Volba je v cookie sam_consent (a = analytika, m = marketing, n = jen nezbytné), 180 dní.
  *   Vše běží v prohlížeči, takže funguje i se statickou cache stránek.
- * - Google Tag Manager se načítá vždy, ale s výchozím souhlasem „denied“ (Consent Mode v2);
- *   po volbě se pošle gtag('consent','update') a událost sam_consent_update do dataLayer.
+ * - Google Tag Manager se načte až po souhlasu (analytika nebo marketing), s Consent Mode v2:
+ *   výchozí stav „denied“, po volbě gtag('consent','update') a událost sam_consent_update.
+ *   Kontejner GTM-5RQRRHHQ totiž sám uděluje souhlas se vším (cookie consent_granted), takže
+ *   načtený bez souhlasu by ukládal cookies Google Analytics a Ads. Vložení GTM pluginem
+ *   DataLayer for eCommerce se proto vypíná a GTM vkládá tento modul.
  * - Pixel Facebooku (PixelYourSite) se spustí až po souhlasu s marketingem (skripty čekají
  *   jako type="text/plain").
  * - Atribuce objednávek WooCommerce (cookies sbjs_*) až po souhlasu s analytikou.
@@ -28,6 +31,24 @@ final class SAM_Consent {
 		add_filter( 'script_loader_tag', array( __CLASS__, 'hold_script' ), 99, 2 );
 		add_action( 'wp_footer', array( __CLASS__, 'banner' ), 50 );
 		add_filter( 'wc_order_attribution_allow_tracking', '__return_false' );
+		add_action( 'wp', array( __CLASS__, 'take_over_gtm' ) );
+	}
+
+	/** ID kontejneru GTM z nastavení pluginu DataLayer for eCommerce. */
+	public static function gtm_id() {
+		$o  = get_option( 'options_tracking_option_free' );
+		$id = is_array( $o ) && ! empty( $o['tracking_google_tag_manager'] ) ? (string) $o['tracking_google_tag_manager'] : '';
+		return preg_match( '/^GTM-[A-Z0-9]+$/', $id ) ? $id : '';
+	}
+
+	/** GTM vloží až tento modul po souhlasu, ne plugin hned při načtení stránky. */
+	public static function take_over_gtm() {
+		if ( ! class_exists( '\DatalayerForWoocommerceFree\RegisterTagManager' ) ) {
+			return;
+		}
+		$tm = \DatalayerForWoocommerceFree\RegisterTagManager::instance();
+		remove_action( 'wp_head', array( $tm, 'hook_google_tag_manager_head' ) );
+		remove_filter( 'wp_body_open', array( $tm, 'hook_google_tag_manager_body' ), 0 );
 	}
 
 	public static function lang() {
@@ -39,6 +60,7 @@ final class SAM_Consent {
 	public static function consent_default() {
 		?>
 <script id="sam-consent-default">
+window.SAM_GTM=<?php echo wp_json_encode( self::gtm_id() ); ?>;
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 (function(){var c=(document.cookie.match(/(?:^|; )sam_consent=([^;]*)/)||[])[1]||'',a=c.indexOf('a')>-1,m=c.indexOf('m')>-1,g='granted',d='denied';
 gtag('consent','default',{ad_storage:m?g:d,ad_user_data:m?g:d,ad_personalization:m?g:d,analytics_storage:a?g:d,functionality_storage:g,security_storage:g,wait_for_update:500});
@@ -127,7 +149,8 @@ gtag('set','ads_data_redaction',!m);gtag('set','url_passthrough',true);})();
 var K='<?php echo esc_js( self::COOKIE ); ?>',box=document.getElementById('sam-cc');if(!box)return;
 var get=function(){return(document.cookie.match(new RegExp('(?:^|; )'+K+'=([^;]*)'))||[])[1]||'';};
 var opts=document.getElementById('sam-cc-opts'),save=document.getElementById('sam-cc-save'),ca=document.getElementById('sam-cc-a'),cm=document.getElementById('sam-cc-m');
-var loaded=false;
+var loaded=false,gtm=false;
+function loadGTM(){if(gtm||!window.SAM_GTM)return;gtm=true;dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});var j=document.createElement('script');j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+window.SAM_GTM;document.head.appendChild(j);}
 function loadMarketing(){if(loaded)return;loaded=true;var list=[].slice.call(document.querySelectorAll('script[type="text/plain"][data-sam-consent="m"]'));
  (function next(){var s=list.shift();if(!s)return;var n=document.createElement('script');for(var i=0;i<s.attributes.length;i++){var at=s.attributes[i];if(at.name!=='type'&&at.name!=='data-sam-consent'&&at.name!=='defer')n.setAttribute(at.name,at.value);}
  if(n.src){n.async=false;n.onload=n.onerror=next;s.parentNode.replaceChild(n,s);}else{n.text=s.text;s.parentNode.replaceChild(n,s);next();}})();}
@@ -135,6 +158,7 @@ function apply(c,update){var a=c.indexOf('a')>-1,m=c.indexOf('m')>-1,g='granted'
  if(update&&window.gtag){gtag('consent','update',{ad_storage:m?g:d,ad_user_data:m?g:d,ad_personalization:m?g:d,analytics_storage:a?g:d});gtag('set','ads_data_redaction',!m);}
  if(update&&window.dataLayer)dataLayer.push({event:'sam_consent_update',sam_analytics:a,sam_marketing:m});
  if(a){var tr=function(){if(window.wc_order_attribution&&wc_order_attribution.setOrderTracking)wc_order_attribution.setOrderTracking(true);};if(document.readyState==='complete')tr();else addEventListener('load',tr);}
+ if(a||m)loadGTM();
  if(m)loadMarketing();}
 function store(c){document.cookie=K+'='+c+';path=/;max-age='+(180*86400)+';SameSite=Lax'+(location.protocol==='https:'?';Secure':'');box.hidden=true;apply(c,true);}
 function open(){var c=get();ca.checked=c.indexOf('a')>-1;cm.checked=c.indexOf('m')>-1;box.hidden=false;}
