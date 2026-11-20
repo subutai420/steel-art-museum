@@ -176,3 +176,15 @@
 .sam-b .foot{background:var(--dark);color:#A8A8A8;font-family:var(--tf)}
 .sam-b .foot-h{color:#fff;font-family:var(--bf)}
 .sam-b .foot a{color:#DADADA}
+
+/* Tripadvisor: bubliny v barvě Tripadvisoru místo hvězdiček */
+.sam-b .bubbles{display:inline-flex;gap:3px;vertical-align:-1px}
+.sam-b .bubble{width:13px;height:13px;border-radius:50%;border:2px solid #00AA6C;box-sizing:border-box}
+.sam-b .bubble.on{background:#00AA6C}
+.sam-b .bubble.half{background:linear-gradient(90deg,#00AA6C 50%,transparent 50%)}
+.b-topbar .bubble,.b-hero-ratings .bubble{border-color:#34E0A1}
+.b-topbar .bubble.on,.b-hero-ratings .bubble.on{background:#34E0A1}
+.b-score--tripadvisor{border-top:3px solid #00AA6C}
+.b-score--google{border-top:3px solid var(--gold)}
+.b-rev--tripadvisor{border-top:3px solid #00AA6C}
+.b-rev-links{display:flex;justify-content:center;gap:12px 28px;flex-wrap:wrap}

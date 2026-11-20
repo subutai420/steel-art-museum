@@ -34,9 +34,11 @@ final class SAM_Reviews {
 			'google_count'    => 6388,
 			'google_url'      => 'https://www.google.com/maps/search/?api=1&query=Steel+Art+Museum+Celetn%C3%A1+15+Praha',
 			'google_place_id' => '',
-			'ta_rating'       => '',
+			// Tripadvisor: profil „Steel Art Museum Prague“ (dříve Gallery of Steel Figures). Počet recenzí ověřit na profilu.
+			'ta_rating'       => 4.8,
 			'ta_count'        => '',
-			'ta_url'          => '',
+			'ta_url'          => 'https://www.tripadvisor.com/Attraction_Review-g274707-d14200357-Reviews-Steel_Art_Museum_Prague-Prague_Bohemia.html',
+			'ta_reviews'      => '',
 			'updated'         => '',
 		);
 	}
@@ -72,7 +74,35 @@ final class SAM_Reviews {
 			$lb = ( $b['lang'] ?? '' ) === $lang ? 0 : 1;
 			return $la <=> $lb ?: strcmp( $b['date'], $a['date'] );
 		} );
-		return array_slice( $items, 0, $limit );
+		// Ručně vložené recenze z Tripadvisoru se střídají s Googlem (G, T, G, T…).
+		$ta  = self::tripadvisor_items();
+		$out = array();
+		while ( ( $items || $ta ) && count( $out ) < $limit ) {
+			if ( $items ) {
+				$out[] = array_shift( $items );
+			}
+			if ( $ta && count( $out ) < $limit ) {
+				$out[] = array_shift( $ta );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Recenze z Tripadvisoru zadané v administraci. Formát: bloky oddělené prázdným řádkem,
+	 * první řádek bloku = jméno autora, zbytek = text recenze.
+	 */
+	public static function tripadvisor_items() {
+		$raw   = str_replace( "\r", '', (string) self::settings()['ta_reviews'] );
+		$items = array();
+		foreach ( preg_split( "/\n\s*\n/", trim( $raw ) ) as $block ) {
+			$lines = array_values( array_filter( array_map( 'trim', explode( "\n", $block ) ) ) );
+			if ( count( $lines ) < 2 ) {
+				continue;
+			}
+			$items[] = array( 'source' => 'tripadvisor', 'author' => array_shift( $lines ), 'rating' => 5, 'text' => implode( ' ', $lines ), 'date' => '', 'lang' => '', 'hidden' => false );
+		}
+		return $items;
 	}
 
 	public static function maybe_seed() {
@@ -188,6 +218,10 @@ final class SAM_Reviews {
 		$field( 'ta_rating', 'Hodnocení', 'Např. 4.5. Prázdné = na webu se Tripadvisor neukazuje.' );
 		$field( 'ta_count', 'Počet recenzí' );
 		$field( 'ta_url', 'Odkaz na profil' );
+		printf(
+			'<tr><th><label for="ta_reviews">Vybrané recenze</label></th><td><textarea class="large-text" rows="10" id="ta_reviews" name="ta_reviews">%s</textarea><p class="description">Zkopírujte z Tripadvisoru pětihvězdičkové recenze. Každá recenze je blok oddělený prázdným řádkem: na prvním řádku jméno autora, pod ním text. Na webu se střídají s recenzemi z Googlu.</p></td></tr>',
+			esc_textarea( (string) $s['ta_reviews'] )
+		);
 		echo '</table>';
 		submit_button( 'Uložit' );
 		printf( '</form><p>Uložených recenzí: %d (na webu se ukazují pětihvězdičkové). Poslední obnova z Google: %s</p></div>', count( $items ), esc_html( $s['updated'] ?: 'ještě nebyla' ) );
@@ -209,6 +243,7 @@ final class SAM_Reviews {
 			$s[ $k ] = esc_url_raw( wp_unslash( $_POST[ $k ] ?? '' ) );
 		}
 		$s['google_place_id'] = sanitize_text_field( wp_unslash( $_POST['google_place_id'] ?? '' ) );
+		$s['ta_reviews']      = sanitize_textarea_field( wp_unslash( $_POST['ta_reviews'] ?? '' ) );
 		update_option( self::OPTION, $s, false );
 		self::refresh_google();
 		wp_safe_redirect( admin_url( 'options-general.php?page=sam-reviews&saved=1' ) );

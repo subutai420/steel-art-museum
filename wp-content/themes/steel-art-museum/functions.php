@@ -224,6 +224,21 @@ function sam_stars( $rating ) {
 	return $out . '</span>';
 }
 
+/** Hodnocení Tripadvisoru se zobrazuje „bublinami“, ne hvězdičkami. */
+function sam_bubbles( $rating ) {
+	$out = '<span class="bubbles" aria-hidden="true">';
+	for ( $i = 1; $i <= 5; $i++ ) {
+		$fill = $rating >= $i - 0.25 ? 'on' : ( $rating >= $i - 0.75 ? 'half' : '' );
+		$out .= '<span class="bubble ' . $fill . '"></span>';
+	}
+	return $out . '</span>';
+}
+
+/** Hvězdičky (Google) nebo bubliny (Tripadvisor) podle zdroje. */
+function sam_rating_mark( $source, $rating ) {
+	return 'tripadvisor' === $source ? sam_bubbles( $rating ) : sam_stars( $rating );
+}
+
 function sam_number( $n, $lang ) {
 	return 'en' === $lang ? number_format( (float) $n, 0, '.', ',' ) : number_format( (float) $n, 0, ',', "\u{00A0}" );
 }
