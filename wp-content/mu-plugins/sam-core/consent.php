@@ -141,7 +141,7 @@ gtag('set','ads_data_redaction',!m);gtag('set','url_passthrough',true);})();
 .sam-cc-b{min-height:44px;padding:10px 18px;border-radius:6px;border:2px solid #555;background:transparent;color:#fff;font:700 .95rem/1 Barlow,system-ui,sans-serif;cursor:pointer}
 .sam-cc-b--main{background:#F2B705;border-color:#F2B705;color:#111}
 .sam-cc-b--link{border-color:transparent;text-decoration:underline;padding-left:6px;padding-right:6px}
-.sam-cc-b[hidden]{display:none}
+.sam-cc-b[hidden],.sam-cc-opts[hidden]{display:none}
 @media (max-width:520px){.sam-cc{left:8px;right:8px;bottom:8px}.sam-cc-btns .sam-cc-b{flex:1 1 auto}}
 </style>
 <script id="sam-consent">
