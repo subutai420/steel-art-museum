@@ -56,10 +56,28 @@ final class SAM_Tickets_Documents {
 		if ( ! $order instanceof WC_Order || 'en' !== self::order_language( $order ) ) {
 			return;
 		}
-		// Přepíná se až v okamžiku skládání e-mailu (WC_Email::setup_locale): WCML na prioritě 9
-		// přepne jazyk podle post meta, které u objednávek v HPOS není, tj. zpět na češtinu.
+		// Texty šablony: angličtina se zapne až při skládání e-mailu (WC_Email::setup_locale), po WCML.
+		// Předmět, nadpis a doplňkový text bere WCML z překladů WPML, kde jsou česky, proto napevno.
 		add_filter( 'woocommerce_email_setup_locale', array( $this, 'refund_email_switch_en' ) );
-		add_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ) );
+		add_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ), 999 );
+		add_filter( 'woocommerce_email_subject_customer_refunded_order', array( $this, 'refund_subject_en' ), 999, 3 );
+		add_filter( 'woocommerce_email_heading_customer_refunded_order', array( $this, 'refund_heading_en' ), 999, 3 );
+		add_filter( 'plugin_locale', array( $this, 'refund_plugin_locale_en' ), 99, 2 );
+	}
+
+	public function refund_subject_en( $subject, $order, $email = null ) {
+		$partial = $email && ! empty( $email->partial_refund );
+		return sprintf( $partial ? 'Your Steel Art Museum order #%s has been partially refunded' : 'Your Steel Art Museum order #%s has been refunded', $order instanceof WC_Order ? $order->get_order_number() : '' );
+	}
+
+	public function refund_heading_en( $heading, $order, $email = null ) {
+		$partial = $email && ! empty( $email->partial_refund );
+		return sprintf( $partial ? 'Partial refund: order #%s' : 'Refund: order #%s', $order instanceof WC_Order ? $order->get_order_number() : '' );
+	}
+
+	/** WCML vnucuje doméně woocommerce svůj jazyk e-mailu; po dobu tohoto e-mailu angličtina. */
+	public function refund_plugin_locale_en( $locale, $domain ) {
+		return 'woocommerce' === $domain ? 'en_US' : $locale;
 	}
 
 	public function refund_email_switch_en() {
@@ -71,7 +89,10 @@ final class SAM_Tickets_Documents {
 
 	public function refund_email_locale_end() {
 		remove_filter( 'woocommerce_email_setup_locale', array( $this, 'refund_email_switch_en' ) );
-		remove_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ) );
+		remove_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ), 999 );
+		remove_filter( 'woocommerce_email_subject_customer_refunded_order', array( $this, 'refund_subject_en' ), 999 );
+		remove_filter( 'woocommerce_email_heading_customer_refunded_order', array( $this, 'refund_heading_en' ), 999 );
+		remove_filter( 'plugin_locale', array( $this, 'refund_plugin_locale_en' ), 99 );
 		if ( $this->email_locale_switched ) {
 			restore_previous_locale();
 			$this->email_locale_switched = false;

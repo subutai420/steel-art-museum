@@ -40,7 +40,8 @@ foreach ( array( 'cs' => 1115, 'en' => 1835 ) as $lang => $pid ) {
 	foreach ( $GLOBALS['mails'] as $x ) { if ( false !== strpos( implode( ',', (array) $x['to'] ), 'test-mail@' ) ) { $m = $x; } }
 	ok( "$lang: e-mail o refundaci", (bool) $m, $m ? $m['subject'] : ( is_wp_error( $r ) ? $r->get_error_message() : 'žádný' ) );
 	if ( $m && 'en' === $lang ) {
-		ok( 'en: refundace anglicky', ! preg_match( '/vrácen|objednávk/iu', $m['subject'] ), $m['subject'] );
+		ok( 'en: refundace anglicky (předmět)', ! preg_match( '/vrácen|objednávk/iu', $m['subject'] ), $m['subject'] );
+		ok( 'en: refundace anglicky (text)', ! preg_match( '/vrácen|Objednávka|Doufáme/u', wp_strip_all_tags( $m['message'] ) ), mb_substr( trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $m['message'] ) ) ), 0, 160 ) );
 	}
 }
 
