@@ -35,7 +35,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		<?php if ( $sources ) : ?>
 		<p class="b-hero-ratings">
 			<?php foreach ( $sources as $key => $s ) : ?>
-			<a href="<?php echo esc_url( $s['url'] ); ?>" rel="noopener"><?php echo sam_rating_mark( $key, $s['rating'] ); // phpcs:ignore ?> <b><?php echo esc_html( sam_rating( $s['rating'], $lang ) ); ?></b> <?php echo esc_html( $s['name'] ); ?></a>
+			<a href="<?php echo esc_url( $s['url'] ); ?>" target="_blank" rel="noopener"><?php echo sam_rating_mark( $key, $s['rating'] ); // phpcs:ignore ?> <b><?php echo esc_html( sam_rating( $s['rating'], $lang ) ); ?></b> <?php echo esc_html( $s['name'] ); ?></a>
 			<?php endforeach; ?>
 		</p>
 		<?php endif; ?>
@@ -86,7 +86,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		</div>
 		<div class="b-scores">
 			<?php foreach ( $sources as $key => $s ) : ?>
-			<a class="b-score b-score--<?php echo esc_attr( $key ); ?>" href="<?php echo esc_url( $s['url'] ); ?>" rel="noopener">
+			<a class="b-score b-score--<?php echo esc_attr( $key ); ?>" href="<?php echo esc_url( $s['url'] ); ?>" target="_blank" rel="noopener">
 				<span class="b-score-num"><?php echo esc_html( sam_rating( $s['rating'], $lang ) ); ?></span>
 				<span><?php echo sam_rating_mark( $key, $s['rating'] ); // phpcs:ignore ?><span class="b-score-src"><?php echo esc_html( $s['name'] ); ?><?php echo $s['count'] ? ' · ' . esc_html( sprintf( sam_t( 'b_rev_based' ), sam_number( $s['count'], $lang ) ) ) : ''; ?></span></span>
 			</a>
@@ -107,7 +107,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 	<?php if ( $sources ) : ?>
 	<p class="b-center b-rev-links">
 		<?php foreach ( $sources as $s ) : ?>
-		<a class="b-link" href="<?php echo esc_url( $s['url'] ); ?>" rel="noopener"><?php echo esc_html( sam_t( 'b_rev_all' ) . ' ' . sprintf( sam_t( 'b_rev_on' ), $s['name'] ) ); ?></a>
+		<a class="b-link" href="<?php echo esc_url( $s['url'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( sam_t( 'b_rev_all' ) . ' ' . sprintf( sam_t( 'b_rev_on' ), $s['name'] ) ); ?></a>
 		<?php endforeach; ?>
 	</p>
 	<?php endif; ?>

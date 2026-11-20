@@ -21,7 +21,7 @@ $sam_google  = $sam_sources['google'] ?? null;
 	<span class="b-topbar-item"><?php echo sam_icon( 'clock' ); // phpcs:ignore ?> <?php echo esc_html( sam_t( 'b_open' ) ); ?></span>
 	<a class="b-topbar-item" href="https://maps.google.com/?q=Celetn%C3%A1+15,+Praha+1"><?php echo sam_icon( 'pin' ); // phpcs:ignore ?> <?php echo esc_html( sam_t( 'b_address' ) ); ?></a>
 	<?php foreach ( $sam_sources as $sam_key => $sam_src ) : ?>
-	<a class="b-topbar-item b-topbar-rating" href="<?php echo esc_url( $sam_src['url'] ); ?>" rel="noopener">
+	<a class="b-topbar-item b-topbar-rating" href="<?php echo esc_url( $sam_src['url'] ); ?>" target="_blank" rel="noopener">
 		<?php echo sam_rating_mark( $sam_key, $sam_src['rating'] ); // phpcs:ignore ?>
 		<b><?php echo esc_html( sam_rating( $sam_src['rating'], $sam_lang ) ); ?></b> <?php echo esc_html( $sam_src['name'] ); ?><?php echo $sam_src['count'] ? ' · ' . esc_html( sprintf( sam_t( 'b_reviews' ), sam_number( $sam_src['count'], $sam_lang ) ) ) : ''; ?>
 	</a>
