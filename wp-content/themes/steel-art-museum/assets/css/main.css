@@ -76,11 +76,11 @@ button{font:inherit;color:inherit}
 .paper{background:var(--white);color:var(--ink);padding:clamp(40px,6vw,88px) var(--gut) var(--sec)}
 .entry{max-width:1200px;margin:0 auto}
 .entry>*:first-child{margin-top:0}
-.entry h1,.entry h2,.entry h3,.entry h4{color:var(--blued);line-height:1.15;font-weight:700}
-.entry h2{font-size:clamp(1.8rem,3vw,2.4rem);margin:2.2rem 0 1rem}
+:where(.entry) :is(h1,h2,h3,h4){color:var(--blued);line-height:1.15;font-weight:700}
+:where(.entry) h2{font-size:clamp(1.8rem,3vw,2.4rem);margin:2.2rem 0 1rem}
 .entry h3{font-size:1.4rem;margin:1.8rem 0 .6rem}
 .entry p,.entry li{max-width:72ch}
-.entry a{color:var(--blued);font-weight:600}
+:where(.entry) a{color:var(--blued);font-weight:600}
 .entry table{border-collapse:collapse;width:100%}
 .entry td,.entry th{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left}
 .entry .wp-block-button__link,.entry .gb-button{border-radius:999px}

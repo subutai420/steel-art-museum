@@ -7,7 +7,7 @@
   --gut:clamp(16px,4vw,48px); --sec:clamp(56px,8vw,112px); --max:1240px;
   background:var(--paper);color:var(--text);font:400 1rem/1.65 var(--tf);
 }
-.sam-b h1,.sam-b h2,.sam-b h3,.sam-b h4{font-family:var(--bf);color:var(--dark);line-height:1.15;margin:0}
+:where(.sam-b) :is(h1,h2,h3,h4){font-family:var(--bf);color:var(--dark);line-height:1.15;margin:0}
 .sam-b a{text-underline-offset:3px}
 
 /* tlačítka */
@@ -224,9 +224,9 @@
 .sam-b .not-found .page-head{min-height:55vh;display:flex;flex-direction:column;justify-content:center}
 .sam-b .paper{background:var(--paper);color:var(--text);padding:clamp(36px,5vw,72px) var(--gut) var(--sec)}
 .sam-b .entry{max-width:var(--max)}
-.sam-b .entry h1,.sam-b .entry h2,.sam-b .entry h3,.sam-b .entry h4{font-family:var(--bf);color:var(--dark);font-weight:700}
-.sam-b .entry h2{font-size:clamp(1.7rem,3vw,2.3rem)}
-.sam-b .entry a{color:var(--dark)}
+:where(.sam-b .entry) :is(h1,h2,h3,h4){font-family:var(--bf);color:var(--dark);font-weight:700}
+:where(.sam-b .entry) h2{font-size:clamp(1.7rem,3vw,2.3rem)}
+:where(.sam-b .entry) a{color:var(--dark)}
 .sam-b .entry .wp-block-button__link,.sam-b .entry .gb-button{border-radius:6px;font-family:var(--bf);font-weight:700}
 .sam-b .entry summary{color:var(--dark);font-family:var(--bf);font-size:1.1rem}
 .sam-b .sam-co-step{border:1px solid var(--line)}
