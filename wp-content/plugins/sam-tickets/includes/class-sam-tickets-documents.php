@@ -40,6 +40,38 @@ final class SAM_Tickets_Documents {
 		add_filter( 'woocommerce_locate_template', array( $this, 'locate_customer_email_template' ), 10, 3 );
 		add_action( 'woocommerce_email_after_order_table', array( $this, 'render_email_ticket' ), 20, 4 );
 		add_action( 'phpmailer_init', array( $this, 'embed_email_images' ), 20 );
+
+		// E-mail o refundaci v jazyce objednávky (WooCommerce jinak píše v jazyce webu, tj. česky).
+		foreach ( array( 'woocommerce_order_fully_refunded_notification', 'woocommerce_order_partially_refunded_notification' ) as $hook ) {
+			add_action( $hook, array( $this, 'refund_email_locale_start' ), 1 );
+			add_action( $hook, array( $this, 'refund_email_locale_end' ), 999 );
+		}
+	}
+
+	/** @var bool Přepnuto na angličtinu kvůli e-mailu o refundaci. */
+	private $email_locale_switched = false;
+
+	public function refund_email_locale_start( $order_id ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order instanceof WC_Order || 'en' !== self::order_language( $order ) ) {
+			return;
+		}
+		add_filter( 'woocommerce_email_setup_locale', '__return_false' );
+		add_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ) );
+		$this->email_locale_switched = switch_to_locale( 'en_US' );
+	}
+
+	public function refund_email_locale_end() {
+		remove_filter( 'woocommerce_email_setup_locale', '__return_false' );
+		remove_filter( 'woocommerce_email_additional_content_customer_refunded_order', array( $this, 'refund_additional_content_en' ) );
+		if ( $this->email_locale_switched ) {
+			restore_previous_locale();
+			$this->email_locale_switched = false;
+		}
+	}
+
+	public function refund_additional_content_en() {
+		return 'We hope to see you again soon.';
 	}
 
 	/**
