@@ -48,7 +48,7 @@ $cor = SAM_Fakturoid_Builder::correction( array(
 	'items'     => array( array( 'name' => 'Dospělí', 'qty' => -1, 'total' => -174.5, 'tax' => -18.7 ) ), 'amount' => 174.5, 'reason' => 'Nemoc',
 ) );
 check( 'typ opravy', 'correction' === $cor['document_type'] && 999 === $cor['correction_id'] && 'wc-refund-55' === $cor['custom_id'] );
-check( 'záporný počet', 1 === count( $cor['lines'] ) && -1 === $cor['lines'][0]['quantity'] && '174.50' === $cor['lines'][0]['unit_price'] );
+check( 'záporná cena', 1 === count( $cor['lines'] ) && 1 === $cor['lines'][0]['quantity'] && '-174.50' === $cor['lines'][0]['unit_price'] );
 check( 'součet opravy', -174.5 === SAM_Fakturoid_Builder::lines_total( $cor['lines'] ) );
 
 // Refundace jen částkou → dorovnávací řádek.
@@ -56,7 +56,7 @@ $cor = SAM_Fakturoid_Builder::correction( array(
 	'refund_id' => 56, 'invoice_id' => 999, 'order_number' => '1', 'date' => '2026-11-20', 'currency' => 'CZK', 'language' => 'cs', 'subject_id' => 7,
 	'items'     => array(), 'amount' => 50, 'reason' => '',
 ) );
-check( 'dorovnání', 1 === count( $cor['lines'] ) && -1 === $cor['lines'][0]['quantity'] && '50.00' === $cor['lines'][0]['unit_price'] && 'Vrácení platby' === $cor['lines'][0]['name'] );
+check( 'dorovnání', 1 === count( $cor['lines'] ) && 1 === $cor['lines'][0]['quantity'] && '-50.00' === $cor['lines'][0]['unit_price'] && 'Vrácení platby' === $cor['lines'][0]['name'] );
 
 // Odběratel.
 $s = SAM_Fakturoid_Builder::subject( array( 'company' => 'Test s.r.o.', 'first_name' => 'Jan', 'last_name' => 'Novák', 'ic' => '12345678', 'dic' => 'CZ12345678', 'street' => 'Celetná 15', 'city' => 'Praha', 'zip' => '11000', 'country' => 'CZ', 'email' => 'a@b.cz' ) );

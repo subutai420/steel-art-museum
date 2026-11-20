@@ -37,9 +37,9 @@ final class SAM_Fakturoid_Builder {
 				}
 				$lines[] = array(
 					'name'       => (string) $item['name'],
-					'quantity'   => $sign * $part[0],
+					'quantity'   => $part[0],
 					'unit_name'  => 'ks',
-					'unit_price' => self::money( $part[1] / 100 ),
+					'unit_price' => self::money( $sign * $part[1] / 100 ),
 					'vat_rate'   => $rate,
 				);
 			}
@@ -103,7 +103,7 @@ final class SAM_Fakturoid_Builder {
 	}
 
 	/**
-	 * Opravný doklad k faktuře (záporné počty).
+	 * Opravný doklad k faktuře (záporné ceny; Fakturoid API v3 nepřijímá záporné množství).
 	 *
 	 * @param array $r [ refund_id, order_id, invoice_id, date, currency, language, subject_id, items, amount, reason ]
 	 */
@@ -114,9 +114,9 @@ final class SAM_Fakturoid_Builder {
 		if ( $diff > 0.004 ) {
 			$lines[] = array(
 				'name'       => 'en' === $r['language'] ? 'Refund' : 'Vrácení platby',
-				'quantity'   => -1,
+				'quantity'   => 1,
 				'unit_name'  => 'ks',
-				'unit_price' => self::money( $diff ),
+				'unit_price' => self::money( -$diff ),
 				'vat_rate'   => (int) ( $r['fallback_rate'] ?? 12 ),
 			);
 		}
