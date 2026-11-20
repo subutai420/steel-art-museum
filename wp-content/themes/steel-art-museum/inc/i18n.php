@@ -138,6 +138,7 @@ function sam_texts() {
 			'contact_page'     => 'Kontakt',
 			'kudyznudy'        => 'Jsme na Kudyznudy.cz',
 			'made_by'          => 'Web: %s',
+			'cookies'          => 'Nastavení cookies',
 
 			'not_found_h'      => 'Tahle stránka tu není',
 			'not_found_p'      => 'Možná se přesunula. Zkuste úvodní stránku, nebo rovnou vstupenky.',
@@ -258,6 +259,7 @@ function sam_texts() {
 			'contact_page'     => 'Contact',
 			'kudyznudy'        => 'Find us on Kudyznudy.cz',
 			'made_by'          => 'Website: %s',
+			'cookies'          => 'Cookie settings',
 
 			'not_found_h'      => 'This page is not here',
 			'not_found_p'      => 'It may have moved. Try the home page, or go straight to tickets.',

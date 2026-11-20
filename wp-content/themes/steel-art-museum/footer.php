@@ -29,6 +29,7 @@
 	<div class="foot-bottom">
 		<span>© <?php echo esc_html( wp_date( 'Y' ) ); ?> Steel Art Museum, Celetná 15, Praha 1</span>
 		<span><a href="https://www.kudyznudy.cz/"><?php echo esc_html( sam_t( 'kudyznudy' ) ); ?></a></span>
+		<span><a href="#" data-sam-consent-open><?php echo esc_html( sam_t( 'cookies' ) ); ?></a></span>
 		<span><?php echo wp_kses_post( sam_t( 'made_by', '<a href="https://danielbubak.cz/">Daniel Bubak</a>' ) ); ?></span>
 	</div>
 </footer>
