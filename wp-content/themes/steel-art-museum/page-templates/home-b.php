@@ -114,6 +114,27 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 </section>
 <?php endif; ?>
 
+<section class="b-sec b-feed" id="fotky" aria-labelledby="feed-h">
+	<div class="b-feed-head">
+		<a class="b-feed-profile" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener">
+			<img src="<?php echo esc_url( sam_img( 'logo.webp' ) ); ?>" alt="" width="56" height="56">
+			<span><b>steelartmuseum</b><span id="feed-h"><?php echo esc_html( sam_t( 'b_feed_h' ) ); ?></span></span>
+		</a>
+		<a class="b-btn b-btn--ig" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener"><?php echo sam_icon( 'instagram' ); // phpcs:ignore ?> <?php echo esc_html( sam_t( 'b_feed_follow' ) ); ?></a>
+	</div>
+	<ul class="b-feed-grid">
+		<?php foreach ( sam_t( 'b_feed' ) as $feed_id => $feed_caption ) : ?>
+		<li>
+			<a class="b-post" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( $feed_caption . ' – Instagram' ); ?>">
+				<?php echo wp_get_attachment_image( $feed_id, 'medium_large', false, array( 'alt' => $feed_caption, 'sizes' => '(max-width:760px) 34vw, 17vw', 'loading' => 'lazy' ) ); // phpcs:ignore ?>
+				<span class="b-post-cap"><?php echo esc_html( $feed_caption ); ?></span>
+			</a>
+		</li>
+		<?php endforeach; ?>
+	</ul>
+	<p class="b-center"><a class="b-link" href="https://www.instagram.com/steelartmuseum/" target="_blank" rel="noopener"><?php echo esc_html( sam_t( 'b_feed_more' ) ); ?></a></p>
+</section>
+
 <section class="b-sec b-see" id="co-uvidite" aria-labelledby="see-h">
 	<div class="b-head">
 		<h2 id="see-h"><?php echo esc_html( sam_t( 'b_see_h' ) ); ?></h2>
