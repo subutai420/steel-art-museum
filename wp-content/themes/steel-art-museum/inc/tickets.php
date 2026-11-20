@@ -2,10 +2,12 @@
 /**
  * Kalkulačka vstupenek na domovské stránce.
  *
- * Ceny a sleva se počítají v košíku WooCommerce (akce je zatím snippet WPCode „Akce LISTOPAD“,
- * ve fázi 4 vlastní modul). Kalkulačka jen ukazuje stejný výpočet předem:
- *  - běží-li akce (snippet aktivní a nevypršel): běžné ceny a každá druhá vstupenka zdarma (nejlevnější),
+ * Ceny a sleva se počítají v košíku WooCommerce (modul Akce, mu-plugins/sam-core/promo.php).
+ * Kalkulačka jen ukazuje stejný výpočet předem:
+ *  - běží-li akce: pravidlo akce (každá N-tá zdarma / sleva %), případně z běžných cen,
  *  - jinak: online cena (akční cena produktu, tj. sleva 20 %) proti ceně na pokladně.
+ * Shortcody [smart_ticket_calculator_cz_magenta] a [smart_ticket_calculator_en_magenta] (stránka
+ * Magenta Moments) vykreslí stejnou kalkulačku s řádkem Magenta Moments 1+1.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -22,14 +24,20 @@ function sam_ticket_rows() {
 }
 
 function sam_promo_active() {
-	if ( ! function_exists( 'stm_akce_free_allocation' ) || ! function_exists( 'stm_akce_end_iso' ) ) {
-		return false;
-	}
-	return time() < strtotime( stm_akce_end_iso() );
+	return class_exists( 'SAM_Promo' ) && SAM_Promo::active();
 }
 
 function sam_promo_end_iso() {
-	return function_exists( 'stm_akce_end_iso' ) ? stm_akce_end_iso() : '';
+	return class_exists( 'SAM_Promo' ) ? SAM_Promo::end_iso() : '';
+}
+
+/** Text akce na webu (štítek u kalkulačky). */
+function sam_promo_banner( $lang ) {
+	return class_exists( 'SAM_Promo' ) ? SAM_Promo::text( 'banner', $lang ) : '';
+}
+
+function sam_promo_note( $lang ) {
+	return class_exists( 'SAM_Promo' ) ? SAM_Promo::note( $lang ) : '';
 }
 
 function sam_tickets_valid_until_text( $lang ) {
@@ -66,7 +74,7 @@ function sam_ticket_prices( $cs_id, $lang, $promo ) {
 	return array( $price ?: $regular, $regular );
 }
 
-function sam_ticket_offer( $lang ) {
+function sam_ticket_offer( $lang, $magenta = false ) {
 	$promo = sam_promo_active();
 	$rows  = array();
 	if ( function_exists( 'wc_get_product' ) ) {
@@ -85,12 +93,20 @@ function sam_ticket_offer( $lang ) {
 			);
 		}
 	}
+	if ( $magenta ) {
+		$m = sam_magenta_row( $lang );
+		if ( $m ) {
+			array_unshift( $rows, $m );
+		}
+	}
 
 	$en = 'en' === $lang;
 	return array(
 		'lang'     => $lang,
 		'rows'     => $rows,
 		'promo'    => $promo,
+		'rule'     => class_exists( 'SAM_Promo' ) ? SAM_Promo::js() : array( 'type' => 'nth', 'nth' => 2, 'percent' => 0 ),
+		'start'    => $magenta ? array( 'magenta' => 1 ) : array( 'adult' => 2 ),
 		'end'      => $promo ? sam_promo_end_iso() : '',
 		'currency' => $en ? 'EUR' : 'CZK',
 		'locale'   => $en ? 'en-GB' : 'cs-CZ',
@@ -108,7 +124,7 @@ function sam_ticket_offer( $lang ) {
 			'minus'   => 'Remove: ',
 			'plus'    => 'Add: ',
 			'count'   => 'Count: ',
-			'bar'     => 'Black Friday: every second ticket free',
+			'bar'     => sam_promo_banner( 'en' ),
 			'bar0'    => 'Tickets online',
 			'busy'    => 'Just a moment…',
 			'door'    => 'at the door',
@@ -126,7 +142,7 @@ function sam_ticket_offer( $lang ) {
 			'minus'   => 'Ubrat: ',
 			'plus'    => 'Přidat: ',
 			'count'   => 'Počet: ',
-			'bar'     => 'Black Friday: každá druhá vstupenka zdarma',
+			'bar'     => sam_promo_banner( 'cs' ),
 			'bar0'    => 'Vstupenky online',
 			'busy'    => 'Moment…',
 			'door'    => 'na pokladně',
@@ -158,12 +174,14 @@ function sam_ajax_add_tickets() {
 	foreach ( sam_ticket_rows() as $row ) {
 		$allowed[] = sam_ticket_product_id( $row['id'], $lang );
 	}
+	$magenta   = sam_ticket_product_id( sam_magenta_id(), $lang );
+	$allowed[] = $magenta;
 
 	WC()->cart->empty_cart();
 	$added = 0;
 	foreach ( $items as $product_id => $qty ) {
 		$product_id = (int) $product_id;
-		$qty        = min( 50, max( 0, (int) $qty ) );
+		$qty        = min( $product_id === $magenta ? 1 : 50, max( 0, (int) $qty ) );
 		if ( $qty > 0 && in_array( $product_id, $allowed, true ) && WC()->cart->add_to_cart( $product_id, $qty ) ) {
 			$added += $qty;
 		}
@@ -173,6 +191,9 @@ function sam_ajax_add_tickets() {
 	}
 
 	WC()->cart->calculate_totals();
+	if ( class_exists( 'SAM_Promo' ) ) {
+		SAM_Promo::sync_coupon();
+	}
 	if ( function_exists( 'stm_akce_sync_coupon' ) ) {
 		stm_akce_sync_coupon();
 	}
@@ -217,3 +238,76 @@ function sam_money( $value, $lang ) {
 	}
 	return number_format( $value, 0, ',', "\u{00A0}" ) . "\u{00A0}Kč";
 }
+
+/* ---------------- Magenta Moments ---------------- */
+
+function sam_magenta_id() {
+	return class_exists( 'SAM_Promo' ) ? SAM_Promo::MAGENTA_PRODUCT : 21024;
+}
+
+/** Řádek kalkulačky „Magenta Moments 1+1“ (max. 1 ks, s kódem MAGENTA sleva 50 %). */
+function sam_magenta_row( $lang ) {
+	$cs_id = sam_magenta_id();
+	if ( 'en' === $lang ) {
+		$price = (float) get_post_meta( $cs_id, '_price_EUR', true );
+		if ( $price <= 0 ) {
+			$price = (float) get_post_meta( $cs_id, '_regular_price_EUR', true );
+		}
+	} else {
+		$product = wc_get_product( $cs_id );
+		$price   = $product && $product->is_purchasable() ? (float) $product->get_price() : 0;
+	}
+	if ( $price <= 0 ) {
+		return null;
+	}
+	$en = 'en' === $lang;
+	return array(
+		'k' => 'magenta',
+		'id' => sam_ticket_product_id( $cs_id, $lang ),
+		'n' => 'Magenta Moments 1+1',
+		'd' => $en ? '2 adult tickets, 50 % off with your MAGENTA code at checkout' : '2 vstupenky pro dospělé, s kódem MAGENTA v pokladně sleva 50 %',
+		'p' => $price,
+		'r' => $price,
+		'm' => 1,
+	);
+}
+
+/** Kalkulačka vložená do obsahu stránky (Magenta Moments, náhrada snippetů WPCode). */
+function sam_embed_calculator( $lang, $magenta = false ) {
+	$offer              = sam_ticket_offer( $lang, $magenta );
+	$offer['boxOffice'] = true;
+	list( $url, $ver )  = sam_asset( 'js/home.js' );
+	wp_enqueue_script( 'sam-home', $url, array(), $ver, array( 'strategy' => 'defer', 'in_footer' => true ) );
+	wp_add_inline_script( 'sam-home', 'window.SAM_TICKETS=' . wp_json_encode( $offer ) . ';', 'before' );
+	$en = 'en' === $lang;
+	ob_start();
+	?>
+	<div class="b-tk b-tk--embed" id="vstupenky">
+		<div class="b-tk-calc">
+			<ul class="rows" id="rows"></ul>
+			<div class="sum">
+				<p class="msg" id="msg" aria-live="polite"></p>
+				<p class="total"><small><?php echo esc_html( $en ? 'Total' : 'Celkem' ); ?></small><span id="was" class="was"></span><span id="total">–</span></p>
+				<button class="b-btn b-btn--buy" id="buy" type="button" disabled><?php echo esc_html( $en ? 'Continue to checkout' : 'Pokračovat k platbě' ); ?></button>
+			</div>
+		</div>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+add_action( 'init', function () {
+	$tags = array(
+		'smart_ticket_calculator_cz_magenta' => array( 'cs', true ),
+		'smart_ticket_calculator_en_magenta' => array( 'en', true ),
+		'smart_ticket_calculator'            => array( 'cs', false ),
+		'smart_ticket_calculator_en'         => array( 'en', false ),
+	);
+	foreach ( $tags as $tag => $cfg ) {
+		if ( ! shortcode_exists( $tag ) ) {
+			add_shortcode( $tag, function () use ( $cfg ) {
+				return sam_embed_calculator( $cfg[0], $cfg[1] );
+			} );
+		}
+	}
+}, 20 );

@@ -9,8 +9,9 @@
   const word = n => D.lang === 'en' ? (n === 1 ? T.tickets[0] : T.tickets[1]) : (n === 1 ? T.tickets[0] : n >= 2 && n <= 4 ? T.tickets[1] : T.tickets[2]);
   const fill = (tpl, n, s) => tpl.replace('%n', n).replace('vstupenky', word(n)).replace('tickets', word(n)).replace('%s', s);
 
-  const q = {};
-  D.rows.forEach(r => { q[r.k] = r.k === 'adult' ? 2 : 0; });
+  const q = {}, start = D.start || { adult: 2 }, R = D.rule || { type: 'nth', nth: 2, percent: 0 };
+  const lim = r => r.m || MAX;
+  D.rows.forEach(r => { q[r.k] = Math.min(lim(r), start[r.k] || 0); });
   rowsEl.innerHTML = D.rows.map(r => `<li class="row"><div><b>${esc(r.n)}</b><small>${esc(r.d)}</small></div>` +
     (D.boxOffice
       ? `<span class="price">${money(r.p)}${r.r > r.p ? `<small class="door">${esc(T.door)} ${money(r.r)}</small>` : ''}</span>`
@@ -20,37 +21,40 @@
     `<button type="button" data-k="${r.k}" data-d="1" aria-label="${esc(T.plus + r.n)}">+</button></div></li>`).join('');
   rowsEl.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
-    q[b.dataset.k] = Math.max(0, Math.min(MAX, q[b.dataset.k] + +b.dataset.d)); calc();
+    const r = D.rows.find(x => x.k === b.dataset.k);
+    q[r.k] = Math.max(0, Math.min(lim(r), q[r.k] + +b.dataset.d)); calc();
   });
 
   const buy = $('buy'), bar = $('bar-txt');
   let pay = 0;
   function calc() {
     const units = [];
-    let full = 0;
+    let full = 0, other = 0;
     D.rows.forEach(r => {
-      for (let i = 0; i < q[r.k]; i++) units.push(r.p);
+      for (let i = 0; i < q[r.k]; i++) { if (r.m) other += r.p; else units.push(r.p); }
       full += r.r * q[r.k];
       $('q-' + r.k).textContent = q[r.k];
       rowsEl.querySelector(`[data-k="${r.k}"][data-d="-1"]`).disabled = q[r.k] === 0;
-      rowsEl.querySelector(`[data-k="${r.k}"][data-d="1"]`).disabled = q[r.k] === MAX;
+      rowsEl.querySelector(`[data-k="${r.k}"][data-d="1"]`).disabled = q[r.k] >= lim(r);
     });
     units.sort((a, b) => a - b);
-    const n = units.length, online = units.reduce((a, b) => a + b, 0);
-    const free = D.promo ? units.slice(0, Math.floor(n / 2)).reduce((a, b) => a + b, 0) : 0;
-    pay = Math.round((online - free) * 100) / 100;
+    const n = units.length, online = units.reduce((a, b) => a + b, 0), N = Math.max(2, R.nth | 0);
+    const free = !D.promo ? 0 : R.type === 'percent' ? online * R.percent / 100 : units.slice(0, Math.floor(n / N)).reduce((a, b) => a + b, 0);
+    pay = Math.round((online - free + other) * 100) / 100;
+    const all = n + (other ? 1 : 0);
     const saved = Math.round((full - pay) * 100) / 100;
     $('total').textContent = money(pay);
     $('was').textContent = saved > 0 ? money(full) : '';
     let msg;
-    if (n === 0) msg = T.empty;
-    else if (D.promo && n === 1) msg = T.one;
-    else if (D.promo) msg = fill(T.save, n, money(saved)) + (n % 2 ? ' ' + T.more : '');
+    if (all === 0) msg = T.empty;
+    else if (n === 0) msg = '';
+    else if (D.promo && R.type !== 'percent' && N === 2 && n === 1) msg = T.one;
+    else if (D.promo && saved > 0) msg = fill(T.save, n, money(saved)) + (R.type !== 'percent' && N === 2 && n % 2 ? ' ' + T.more : '');
     else msg = saved > 0 ? fill(n === 1 ? T.online1 : T.online, n, money(saved)) : fill(T.n1, n, '');
     if (n > 10) msg += T.groups;
     $('msg').textContent = msg;
-    buy.disabled = n === 0;
-    if (bar) bar.innerHTML = n ? `${n} ${esc(word(n))}<b>${money(pay)}</b>` : esc(D.promo ? T.bar : T.bar0);
+    buy.disabled = all === 0;
+    if (bar) bar.innerHTML = n ? `${n} ${esc(word(n))}<b>${money(pay)}</b>` : esc(D.promo && T.bar ? T.bar : T.bar0);
   }
   calc();
 

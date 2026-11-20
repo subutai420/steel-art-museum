@@ -172,7 +172,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		<p class="b-kicker"><?php echo esc_html( sam_t( 'b_tk_kicker' ) ); ?></p>
 		<h2 id="tk-h"><?php echo esc_html( sam_t( 'b_tk_h' ) ); ?></h2>
 		<p class="b-lead"><?php echo esc_html( sam_t( 'b_tk_p', $valid ) ); ?></p>
-		<?php if ( $offer['promo'] ) : ?><p class="b-promo"><?php echo esc_html( sam_t( 'b_promo' ) ); ?></p><?php endif; ?>
+		<?php if ( $offer['promo'] && sam_promo_banner( $lang ) ) : ?><p class="b-promo"><?php echo esc_html( sam_promo_banner( $lang ) ); ?></p><?php endif; ?>
 	</div>
 	<div class="b-tk">
 		<div class="b-tk-calc">
@@ -203,7 +203,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 			</table>
 			<ul class="b-notes">
 				<li><?php echo esc_html( sam_t( 'note_under3' ) ); ?></li>
-				<?php if ( $offer['promo'] ) : ?><li><?php echo esc_html( sam_t( 'note_promo' ) ); ?></li><?php endif; ?>
+				<?php if ( $offer['promo'] ) : ?><li><?php echo esc_html( sam_promo_note( $lang ) ); ?></li><?php endif; ?>
 				<li><?php echo esc_html( sam_t( 'note_groups' ) ); ?></li>
 			</ul>
 		</aside>
