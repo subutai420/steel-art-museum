@@ -27,11 +27,26 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 13a. Do `/srv/stack/.env` doplnit `SAM_FAKTUROID_ACCOUNT=roslincorp`, `SAM_FAKTUROID_CLIENT_ID`, `SAM_FAKTUROID_CLIENT_SECRET` (API v3 – stejné údaje, jaké má v nastavení plugin Toret, nebo nové v Nastavení → Uživatelský účet → API) a `SAM_FAKTUROID_NUMBER_FORMAT=235201` (řada, kterou používal Toret). `docker compose up -d php cron`.
 13b. `wp plugin deactivate woo-fakturoid` a `wp plugin activate sam-fakturoid`. Kontrola přihlášení: `wp sam-fakturoid check`. *(19. 11. 2026)*
 13c. Staré objednávky s fakturou z Toretu (meta `fakturoid_invoice_id`) novou fakturu nedostanou; refundace k nim vystaví opravný doklad.
+13d. Ověřeno na skutečném účtu 20. 11. 2026 s údaji z pluginu Toret (volby `wc_settings_tab_fakturoid_client_id` / `_client_secret`): testovací faktura **2026-5676** (349 Kč, Koncový zákazník, objednávka 32442 na kopii) a opravný doklad **2026-5677** (−349 Kč). Oba jsou v účtu roslincorp jako test nového webu, navzájem se ruší.
 
 ## Šablona (steel-art-museum)
 14a. `wp theme activate steel-art-museum` a `wp menu location assign main primary` (EN menu přiřadí WPML). GeneratePress a GP Premium můžou zůstat nainstalované kvůli návratu, obsah stránek dál potřebuje plugin GenerateBlocks. *(19. 11. 2026)*
 14b. Po přepnutí smazat stránkovou cache (`rm -rf wp-content/cache/all/*`).
+14d. Úvodní stránka je varianta B (`front-page.php`). Srovnávací stránku `/novy-design/` (ID 32441 na kopii) po spuštění smazat, šablona `page-templates/home-b.php` může jít pryč s ní.
+14e. SEO titulky a popisy (úvodní CZ/EN, ceník, kontakt) doplní sama migrace `sam-core/content-migration-20261120.php` (vyplněné hodnoty nepřepisuje). Kontrola: `wp option get sam_content_migration_20261120_done`.
 14c. Stránka Kontakt se upraví sama při prvním načtení webu (`sam-core/content-migration-20261119.php`: vlastní formulář místo Gutena Forms, pryč trustindex a mapa). Kontrola: `wp option get sam_content_migration_20261119_done`. Až potom smazat cache (14b).
+
+## Akce a Magenta (sam-core/promo.php)
+16. `wp plugin deactivate insert-headers-and-footers` – vypne WPCode i se všemi snippety: akce Black Friday (#32397), kalkulačky Magenta CZ/EN (#21251, #26288) a nebezpečný hromadný přepis kupónů `?opravit=preklep2` (#26319). Nahrazuje je modul **WooCommerce → Akce** a kalkulačka v šabloně (shortcody `[smart_ticket_calculator_cz_magenta]` / `_en_magenta` zůstávají na stránkách Magenta Moments). Dokud je snippet akce aktivní, modul se sám vypne.
+17. WooCommerce → Akce: zkontrolovat nastavení. Při prvním spuštění se převezme Black Friday „každá druhá zdarma“ do 30. 11. 2026 23:59 (pak se sama vypne). Kódy MAGENTA-xxxxxx zůstávají jako kupóny WooCommerce, nové se generují tamtéž.
+
+## E-maily (sam-core/smtp.php)
+18. Do `/srv/stack/.env` doplnit `SAM_SMTP_HOST`, `SAM_SMTP_PORT` (465), `SAM_SMTP_USER`, `SAM_SMTP_PASS` (schránka info@steelartmuseum.eu na WEDOS), případně `SAM_SMTP_FROM`. `docker compose up -d php cron wpcli`. Zkouška: `wp sam-smtp test <adresa>`.
+19. DNS (Cloudflare): doplnit SPF záznam pro odesílání přes WEDOS (podle návodu WEDOS), jinak hrozí, že vstupenky skončí ve spamu.
+
+## Souhlas s cookies (sam-core/consent.php)
+20. Lišta a Consent Mode v2 jsou v kódu, nic se nezapíná. Google Tag Manager vkládá modul až po souhlasu (vkládání pluginem DataLayer for eCommerce se vypíná).
+21. **GTM-5RQRRHHQ:** kontejner obsahuje značku, která sama udělí souhlas se vším (cookie `consent_granted`). Upravit v GTM: značku odstranit a souhlas řídit událostí `sam_consent_update` / proměnnými `sam_analytics`, `sam_marketing` (Consent Mode stav posílá web sám). Do té doby web GTM bez souhlasu vůbec nenačte, takže je to bezpečné, jen s „pouze analytikou“ se v GTM udělí i reklamní souhlas.
 
 ## Server
 14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
