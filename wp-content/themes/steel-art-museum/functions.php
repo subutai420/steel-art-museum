@@ -96,9 +96,13 @@ add_filter( 'style_loader_tag', function ( $tag, $handle ) {
 // Plakát úvodního videa se načítá hned (LCP).
 add_action( 'wp_head', function () {
 	if ( sam_is_home() ) {
+		// Mobil: plakát na výšku (stejná plocha jako video, aby se nezapočítal zmenšený), počítač: na šířku.
 		printf(
-			'<link rel="preload" as="image" href="%s" imagesrcset="%s" imagesizes="100vw" fetchpriority="high">' . "\n",
-			esc_url( sam_img( 'fotky00086405-800.webp' ) ),
+			'<link rel="preload" as="image" media="(max-width:767px)" imagesrcset="%s" imagesizes="100vw" fetchpriority="high">' . "\n",
+			esc_attr( sam_img( 'fotky00086405-m480.webp' ) . ' 480w, ' . sam_img( 'fotky00086405-m768.webp' ) . ' 768w' )
+		);
+		printf(
+			'<link rel="preload" as="image" media="(min-width:768px)" imagesrcset="%s" imagesizes="100vw" fetchpriority="high">' . "\n",
 			esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w' )
 		);
 	}

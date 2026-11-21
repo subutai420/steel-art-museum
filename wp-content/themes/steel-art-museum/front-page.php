@@ -25,7 +25,10 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 <main id="obsah" class="b-main">
 
 <section class="b-hero">
-	<img class="b-hero-poster" src="<?php echo esc_url( sam_img( 'fotky00086405-800.webp' ) ); ?>" srcset="<?php echo esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w' ); ?>" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high">
+	<picture>
+		<source media="(max-width:767px)" srcset="<?php echo esc_attr( sam_img( 'fotky00086405-m480.webp' ) . ' 480w, ' . sam_img( 'fotky00086405-m768.webp' ) . ' 768w' ); ?>" sizes="100vw" width="768" height="1200">
+		<img class="b-hero-poster" src="<?php echo esc_url( sam_img( 'fotky00086405-800.webp' ) ); ?>" srcset="<?php echo esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w' ); ?>" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high">
+	</picture>
 	<video class="b-hero-video" muted loop playsinline preload="none" aria-hidden="true"
 		data-desktop="<?php echo esc_url( $uploads . '/2026/02/hp_desktop.webm' ); ?>" data-mobile="<?php echo esc_url( $uploads . '/2026/02/hp_mob.webm' ); ?>"></video>
 	<div class="b-hero-in">
