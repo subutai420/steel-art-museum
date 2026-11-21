@@ -48,6 +48,9 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 20. Lišta a Consent Mode v2 jsou v kódu, nic se nezapíná. Google Tag Manager vkládá modul až po souhlasu (vkládání pluginem DataLayer for eCommerce se vypíná).
 21. **GTM-5RQRRHHQ:** kontejner obsahuje značku, která sama udělí souhlas se vším (cookie `consent_granted`). Upravit v GTM: značku odstranit a souhlas řídit událostí `sam_consent_update` / proměnnými `sam_analytics`, `sam_marketing` (Consent Mode stav posílá web sám). Do té doby web GTM bez souhlasu vůbec nenačte, takže je to bezpečné, jen s „pouze analytikou“ se v GTM udělí i reklamní souhlas.
 
+## Recenze Google (sam-core/reviews.php)
+22. Do `/srv/stack/.env` doplnit `SAM_GOOGLE_PLACES_KEY` (Google Cloud: zapnout **Places API (New)**, klíč omezit jen na toto API) a `docker compose up -d php cron wpcli`. Pak `wp sam-reviews refresh`: dohledá ID místa, stáhne aktuální hodnocení a počet recenzí a až 10 recenzí (CZ + EN). Dál se obnovuje samo jednou týdně (WP-Cron v kontejneru cron). Na kopii to nejde vyzkoušet, pojistka blokuje HTTP.
+
 ## Server
 14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
 15. nginx: testovací doména je od 19. 11. 2026 bez hesla, jen s hlavičkou `X-Robots-Tag: noindex` (mapa `$sam_robots`); ostrá doména hlavičku nedostává. Nic není potřeba měnit.
