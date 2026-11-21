@@ -67,7 +67,7 @@ final class SAM_Reviews {
 	public static function items( $limit = 12, $lang = 'cs' ) {
 		$items = array_values( array_filter( (array) get_option( self::ITEMS_OPTION, array() ), static function( $r ) {
 			$len = function_exists( 'mb_strlen' ) ? mb_strlen( $r['text'] ) : strlen( $r['text'] );
-			return (int) $r['rating'] >= 5 && $len >= 60 && $len <= 420 && empty( $r['hidden'] );
+			return (int) $r['rating'] >= 5 && $len >= 60 && $len <= 420 && empty( $r['hidden'] ) && ! self::mentions_protected( $r['text'] );
 		} ) );
 		usort( $items, static function( $a, $b ) use ( $lang ) {
 			$la = ( $a['lang'] ?? '' ) === $lang ? 0 : 1;
@@ -75,7 +75,7 @@ final class SAM_Reviews {
 			return $la <=> $lb ?: strcmp( $b['date'], $a['date'] );
 		} );
 		// Ručně vložené recenze z Tripadvisoru se střídají s Googlem (G, T, G, T…).
-		$ta  = self::tripadvisor_items();
+		$ta  = array_values( array_filter( self::tripadvisor_items(), static function( $r ) { return ! self::mentions_protected( $r['text'] ); } ) );
 		$out = array();
 		while ( ( $items || $ta ) && count( $out ) < $limit ) {
 			if ( $items ) {
@@ -86,6 +86,15 @@ final class SAM_Reviews {
 			}
 		}
 		return $out;
+	}
+
+	/**
+	 * Recenze, které jmenují postavy chráněné autorským právem (nebo jméno zakladatele), se na webu
+	 * neukazují – muzeum na postavy nemá práva a texty webu je záměrně nejmenují.
+	 */
+	public static function mentions_protected( $text ) {
+		$pattern = '/olejnik|mariusz|\bthor|hulk|marvel|avenger|spider|kapit[aá]n ameri|captain america|iron ?man|batman|superman|optimus|bumblebee|transformer|star ?wars|darth|vader|yoda|stormtrooper|homer|simpson|shrek|mimo[nň]|minion|wall-?e|pinocchio|pinokio|disney|pixar|mickey|e\.t\.|alien|predator|terminator|groot|deadpool|wolverine|harry potter|jack sparrow|iron throne|železn[yý] tr[uů]n|game of thrones|hra o tr[uů]ny|elvis|jackson|lamborghini|ferrari|porsche|bugatti/iu';
+		return (bool) preg_match( $pattern, (string) $text );
 	}
 
 	/**

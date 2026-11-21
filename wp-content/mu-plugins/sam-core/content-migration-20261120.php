@@ -18,11 +18,11 @@ final class SAM_Content_Migration_20261120 {
 		return array(
 			42   => array( // úvodní stránka CZ
 				'Steel Art Museum Praha – interaktivní muzeum ocelových soch',
-				'Přes 120 soch v životní velikosti z recyklované oceli v centru Prahy. Na sochy se tu sahá: zvedněte Thorovo kladivo a vyfoťte se s hrdiny. Otevřeno denně 10–21 h, Celetná 15.',
+				'Přes 120 soch v životní velikosti z recyklované oceli v centru Prahy. Na sochy se tu sahá: sedněte si do auta, zvedněte kladivo a vyfoťte se s hrdiny. Otevřeno denně 10–21 h, Celetná 15.',
 			),
 			1827 => array( // úvodní stránka EN
 				'Steel Art Museum Prague – interactive museum of steel sculptures',
-				'Over 120 life-size sculptures made from recycled steel in the centre of Prague. Touching allowed: lift Thor’s hammer and take photos with your heroes. Open daily 10 am–9 pm, Celetná 15.',
+				'Over 120 life-size sculptures made from recycled steel in the centre of Prague. Touching allowed: sit in a car, lift the hammer and take photos with your heroes. Open daily 10 am–9 pm, Celetná 15.',
 			),
 			1529 => array( // ceník
 				'Ceník vstupného – Steel Art Museum Praha',

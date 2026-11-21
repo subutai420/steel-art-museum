@@ -76,7 +76,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		</figure>
 		<?php endforeach; ?>
 		<figure class="b-card b-slide">
-			<?php echo $photo( 1577, $en ? 'Steel Optimus Prime, E.T. and Bumblebee' : 'Ocelový Optimus Prime, E.T. a Bumblebee', '(max-width:760px) 85vw, 400px' ); // phpcs:ignore ?>
+			<?php echo $photo( 1577, $en ? 'Two giant steel robots and an alien' : 'Dva obří ocelové roboti a mimozemšťan', '(max-width:760px) 85vw, 400px' ); // phpcs:ignore ?>
 			<figcaption><h3><?php echo esc_html( sam_t( 'b_exp_4' ) ); ?></h3><p><?php echo esc_html( sam_t( 'b_exp_4_p' ) ); ?></p></figcaption>
 		</figure>
 		</div>
@@ -153,11 +153,11 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 	</div>
 	<?php
 	$cats = array(
-		array( 1584, 'b_cat_1', $en ? 'Steel Optimus Prime with a sword' : 'Ocelový Optimus Prime s mečem' ),
-		array( 1582, 'b_cat_2', $en ? 'Steel replica of a Lamborghini' : 'Ocelová replika Lamborghini' ),
-		array( 1583, 'b_cat_3', $en ? 'Steel Elvis and Michael Jackson' : 'Ocelový Elvis a Michael Jackson' ),
+		array( 1584, 'b_cat_1', $en ? 'A giant steel robot with a sword and shield' : 'Obří ocelový robot s mečem a štítem' ),
+		array( 1582, 'b_cat_2', $en ? 'Steel replica of a sports car' : 'Ocelová replika sportovního vozu' ),
+		array( 1583, 'b_cat_3', $en ? 'Steel sculptures of two singers' : 'Ocelové sochy dvou zpěváků' ),
 		array( 1601, 'b_cat_4', $en ? 'Steel dinosaurs over a lava floor' : 'Ocelový triceratops a další dinosauři nad lávou' ),
-		array( 1077, 'b_cat_5', $en ? 'Children with steel Minions' : 'Děti s ocelovými Mimoni' ),
+		array( 1077, 'b_cat_5', $en ? 'Children with funny yellow steel characters' : 'Děti s veselými žlutými postavičkami z oceli' ),
 	);
 	foreach ( $cats as $i => $cat ) :
 		?>
