@@ -30,7 +30,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		<img class="b-hero-poster" src="<?php echo esc_url( sam_img( 'fotky00086405-800.webp' ) ); ?>" srcset="<?php echo esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w' ); ?>" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high">
 	</picture>
 	<video class="b-hero-video" muted loop playsinline preload="none" aria-hidden="true"
-		data-desktop="<?php echo esc_url( $uploads . '/2026/02/hp_desktop.webm' ); ?>" data-mobile="<?php echo esc_url( $uploads . '/2026/02/hp_mob.webm' ); ?>"></video>
+		data-desktop="<?php echo esc_url( get_template_directory_uri() . '/assets/video/hero-pocitac.webm' ); ?>" data-mobile="<?php echo esc_url( get_template_directory_uri() . '/assets/video/hero-mobil.webm' ); ?>"></video>
 	<div class="b-hero-in">
 		<h1><?php echo esc_html( sam_t( 'b_hero_h' ) ); ?></h1>
 		<p class="b-hero-sub"><?php echo esc_html( sam_t( 'b_hero_p' ) ); ?></p>
