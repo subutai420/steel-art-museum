@@ -138,14 +138,20 @@
       if (prev) prev.disabled = track.scrollLeft <= 2;
       if (next) next.disabled = track.scrollLeft >= max - 2;
     };
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const first = () => Math.round(track.scrollLeft / step());
+    const go = i => {
+      i = Math.max(0, Math.min(slides.length - 1, i));
+      track.scrollTo({ left: slides[i].offsetLeft - slides[0].offsetLeft, behavior: still ? 'auto' : 'smooth' });
+    };
     c.addEventListener('click', e => {
       const b = e.target.closest('[data-dir]'); if (!b) return;
-      track.scrollBy({ left: +b.dataset.dir * step() * perPage(), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      go(first() + +b.dataset.dir * perPage());
     });
     track.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); track.scrollBy({ left: (e.key === 'ArrowRight' ? 1 : -1) * step() }); }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); go(first() + (e.key === 'ArrowRight' ? 1 : -1)); }
     });
     let t; track.addEventListener('scroll', () => { cancelAnimationFrame(t); t = requestAnimationFrame(draw); }, { passive: true });
-    addEventListener('resize', draw); draw();
+    addEventListener('resize', draw); addEventListener('load', draw); draw();
   });
 })();
