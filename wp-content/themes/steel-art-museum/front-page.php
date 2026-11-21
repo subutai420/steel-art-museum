@@ -25,7 +25,8 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 <main id="obsah" class="b-main">
 
 <section class="b-hero">
-	<video class="b-hero-video" muted loop playsinline preload="none" poster="<?php echo esc_url( sam_img( 'fotky00086405-1600.webp' ) ); ?>"
+	<img class="b-hero-poster" src="<?php echo esc_url( sam_img( 'fotky00086405-800.webp' ) ); ?>" srcset="<?php echo esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w' ); ?>" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high">
+	<video class="b-hero-video" muted loop playsinline preload="none" aria-hidden="true"
 		data-desktop="<?php echo esc_url( $uploads . '/2026/02/hp_desktop.webm' ); ?>" data-mobile="<?php echo esc_url( $uploads . '/2026/02/hp_mob.webm' ); ?>"></video>
 	<div class="b-hero-in">
 		<h1><?php echo esc_html( sam_t( 'b_hero_h' ) ); ?></h1>
@@ -67,7 +68,7 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		foreach ( $slides as $i => $c ) :
 			?>
 		<figure class="b-card b-slide">
-			<img src="<?php echo esc_url( $c[0] ); ?>" srcset="<?php echo esc_attr( $c[0] . ' 800w, ' . $c[1] . ' 1600w' ); ?>" sizes="(max-width:760px) 85vw, (max-width:1000px) 46vw, 400px" alt="<?php echo esc_attr( $c[4] ); ?>" width="800" height="600" loading="<?php echo $i < 3 ? 'eager' : 'lazy'; ?>">
+			<img src="<?php echo esc_url( $c[0] ); ?>" srcset="<?php echo esc_attr( $c[0] . ' 800w, ' . $c[1] . ' 1600w' ); ?>" sizes="(max-width:760px) 85vw, (max-width:1000px) 46vw, 400px" alt="<?php echo esc_attr( $c[4] ); ?>" width="800" height="600" loading="lazy">
 			<figcaption><h3><?php echo esc_html( $c[2] ); ?></h3><p><?php echo esc_html( $c[3] ); ?></p></figcaption>
 		</figure>
 		<?php endforeach; ?>
@@ -256,9 +257,12 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 </section>
 </main>
 <script>
-/* Úvodní video: menší verze pro mobil, načte se až po vykreslení stránky (jako na původním webu). */
-(function(){var v=document.querySelector('.b-hero-video');if(!v||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-addEventListener('load',function(){v.src=innerWidth<768?v.dataset.mobile:v.dataset.desktop;v.play().catch(function(){});});})();
+/* Úvodní video: nejdřív se ukáže fotka (rychlé vykreslení), video se stáhne až po načtení stránky
+   a prolne se přes ni, až opravdu hraje. Při úsporném režimu dat a pomalém připojení zůstane fotka. */
+(function(){var v=document.querySelector('.b-hero-video'),c=navigator.connection||{};
+if(!v||matchMedia('(prefers-reduced-motion: reduce)').matches||c.saveData||/(^|-)2g$/.test(c.effectiveType||''))return;
+v.addEventListener('playing',function(){v.classList.add('is-playing');},{once:true});
+addEventListener('load',function(){setTimeout(function(){v.src=innerWidth<768?v.dataset.mobile:v.dataset.desktop;v.play().catch(function(){});},300);});})();
 </script>
 <?php
 get_footer();

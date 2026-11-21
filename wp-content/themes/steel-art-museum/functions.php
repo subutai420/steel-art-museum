@@ -86,7 +86,9 @@ add_filter( 'woocommerce_enqueue_styles', function ( $styles ) {
 
 add_filter( 'style_loader_tag', function ( $tag, $handle ) {
 	if ( 'sam-font' === $handle ) {
-		$tag = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n" . $tag;
+		// Písma neblokují vykreslení (display=swap): styl se načte na pozadí, bez JS jako běžný styl.
+		$async = str_replace( "media='all'", "media='print' onload=\"this.media='all'\"", $tag );
+		$tag   = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n" . $async . '<noscript>' . $tag . '</noscript>' . "\n";
 	}
 	return $tag;
 }, 10, 2 );
@@ -94,7 +96,11 @@ add_filter( 'style_loader_tag', function ( $tag, $handle ) {
 // Plakát úvodního videa se načítá hned (LCP).
 add_action( 'wp_head', function () {
 	if ( sam_is_home() ) {
-		printf( '<link rel="preload" as="image" href="%s" fetchpriority="high">' . "\n", esc_url( sam_img( 'fotky00086405-1600.webp' ) ) );
+		printf(
+			'<link rel="preload" as="image" href="%s" imagesrcset="%s" imagesizes="100vw" fetchpriority="high">' . "\n",
+			esc_url( sam_img( 'fotky00086405-800.webp' ) ),
+			esc_attr( sam_img( 'fotky00086405-800.webp' ) . ' 800w, ' . sam_img( 'fotky00086405-1600.webp' ) . ' 1600w' )
+		);
 	}
 	printf( '<link rel="icon" href="%s">' . "\n", esc_url( sam_img( 'logo.png' ) ) );
 	echo '<meta name="theme-color" content="#141414">' . "\n";
@@ -234,3 +240,37 @@ function sam_social_links( $class = 'social-links' ) {
 remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
 remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
+
+/*
+ * Rychlost: styly a skripty pluginů, které šablona nepoužívá.
+ * - GP Premium (moduly pro GeneratePress: sticky menu, off-canvas, ikony) – šablona má vlastní hlavičku.
+ * - WP Review Slider Pro – recenze má web vlastní (sam-core/reviews.php).
+ * - WPML/WCML přepínače jazyka a měny – šablona má vlastní odkaz na druhý jazyk.
+ * GenerateBlocks zůstává (obsah stránek je z jeho bloků).
+ */
+function sam_unused_assets() {
+	$styles  = array( 'generate-sticky', 'generate-offside', 'gp-premium-icons', 'generate-navigation-branding', 'wprevpro_w3', 'wcml-dropdown-0', 'wpml-legacy-horizontal-list-0', 'wpml-menu-item-0' );
+	$scripts = array( 'generate-sticky', 'generate-offside', 'wp-review-slider-pro_slick-min', 'wp-review-slider-pro_unslider_comb-min', 'wp-review-slider-pro_plublic-min' );
+	if ( ! sam_is_shop_page() ) {
+		$styles  = array_merge( $styles, array( 'generate-woocommerce', 'generate-woocommerce-mobile' ) );
+		$scripts = array_merge( $scripts, array( 'generate-woocommerce', 'cart-widget', 'wc-cart-fragments' ) );
+	}
+	foreach ( $styles as $h ) {
+		wp_dequeue_style( $h );
+	}
+	foreach ( $scripts as $h ) {
+		wp_dequeue_script( $h );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'sam_unused_assets', 999 );
+add_action( 'wp_print_styles', 'sam_unused_assets', 1 );
+
+// jQuery do patičky: v hlavičce by blokoval vykreslení (potřebují ho jen skripty v patičce).
+add_action( 'wp_enqueue_scripts', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	foreach ( array( 'jquery', 'jquery-core', 'jquery-migrate' ) as $h ) {
+		wp_scripts()->add_data( $h, 'group', 1 );
+	}
+}, 1000 );
