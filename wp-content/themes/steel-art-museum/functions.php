@@ -278,3 +278,30 @@ add_action( 'wp_enqueue_scripts', function () {
 		wp_scripts()->add_data( $h, 'group', 1 );
 	}
 }, 1000 );
+
+/*
+ * Úvodní stránka: vlastní styly přímo v HTML (bez čekání na další soubory, rychlejší první vykreslení
+ * na mobilu) a bez stylů, které nepoužívá (bloky GenerateBlocks a WooCommerce – obsah úvodní stránky
+ * je v šabloně, ne v editoru).
+ */
+add_action( 'wp_enqueue_scripts', function () {
+	if ( ! sam_is_home() ) {
+		return;
+	}
+	foreach ( array( 'sam-main', 'sam-b', 'generateblocks', 'wc-blocks-style' ) as $h ) {
+		wp_dequeue_style( $h );
+	}
+}, 1001 );
+
+add_action( 'wp_head', function () {
+	if ( ! sam_is_home() ) {
+		return;
+	}
+	$css = '';
+	foreach ( array( 'css/main.css', 'css/b.css' ) as $f ) {
+		$css .= (string) file_get_contents( get_template_directory() . '/assets/' . $f ) . "\n";
+	}
+	// Relativní cesty v CSS (url(...)) by v HTML ukazovaly jinam.
+	$css = str_replace( 'url(../', 'url(' . get_template_directory_uri() . '/assets/', $css );
+	echo '<style id="sam-inline-css">' . $css . '</style>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
+}, 8 );
