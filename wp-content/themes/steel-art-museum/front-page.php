@@ -54,24 +54,33 @@ $photo = static function ( $id, $alt, $sizes, $class = '' ) {
 		<h2 id="exp-h"><?php echo esc_html( sam_t( 'b_exp_h' ) ); ?></h2>
 		<p class="b-lead"><?php echo esc_html( sam_t( 'b_exp_p' ) ); ?></p>
 	</div>
-	<div class="b-exp-grid">
+	<div class="b-carousel" data-carousel>
+		<div class="b-car-track" tabindex="0" role="region" aria-roledescription="carousel" aria-label="<?php echo esc_attr( sam_t( 'b_exp_h' ) ); ?>">
 		<?php
-		$cards = array(
-			array( sam_img( '6l4a0460-800.webp' ), sam_img( '6l4a0460-1600.webp' ), 'b_exp_1', sam_t( 'try_1_alt' ) ),
-			array( sam_img( 'soubor-1-800.webp' ), sam_img( 'soubor-1-1600.webp' ), 'b_exp_2', sam_t( 'try_2_alt' ) ),
-			array( sam_img( '6l4a0465-800.webp' ), sam_img( '6l4a0465-1600.webp' ), 'b_exp_3', sam_t( 'try_3_alt' ) ),
-		);
-		foreach ( $cards as $c ) :
+		$slides = array();
+		foreach ( sam_t( 'b_slides' ) as $key => $s ) {
+			$slides[] = array( sam_img( 'zazitek-' . $key . '-800.webp' ), sam_img( 'zazitek-' . $key . '-1600.webp' ), $s[0], $s[1], $s[2] );
+		}
+		foreach ( array( array( '6l4a0460', 'b_exp_1', 'try_1_alt' ), array( 'soubor-1', 'b_exp_2', 'try_2_alt' ), array( '6l4a0465', 'b_exp_3', 'try_3_alt' ) ) as $c ) {
+			$slides[] = array( sam_img( $c[0] . '-800.webp' ), sam_img( $c[0] . '-1600.webp' ), sam_t( $c[1] ), sam_t( $c[1] . '_p' ), sam_t( $c[2] ) );
+		}
+		foreach ( $slides as $i => $c ) :
 			?>
-		<figure class="b-card">
-			<img src="<?php echo esc_url( $c[0] ); ?>" srcset="<?php echo esc_attr( $c[0] . ' 800w, ' . $c[1] . ' 1600w' ); ?>" sizes="(max-width:760px) 100vw, 33vw" alt="<?php echo esc_attr( $c[3] ); ?>" loading="lazy">
-			<figcaption><h3><?php echo esc_html( sam_t( $c[2] ) ); ?></h3><p><?php echo esc_html( sam_t( $c[2] . '_p' ) ); ?></p></figcaption>
+		<figure class="b-card b-slide">
+			<img src="<?php echo esc_url( $c[0] ); ?>" srcset="<?php echo esc_attr( $c[0] . ' 800w, ' . $c[1] . ' 1600w' ); ?>" sizes="(max-width:760px) 85vw, (max-width:1000px) 46vw, 400px" alt="<?php echo esc_attr( $c[4] ); ?>" width="800" height="600" loading="<?php echo $i < 3 ? 'eager' : 'lazy'; ?>">
+			<figcaption><h3><?php echo esc_html( $c[2] ); ?></h3><p><?php echo esc_html( $c[3] ); ?></p></figcaption>
 		</figure>
 		<?php endforeach; ?>
-		<figure class="b-card">
-			<?php echo $photo( 1577, $en ? 'Steel Optimus Prime, E.T. and Bumblebee' : 'Ocelový Optimus Prime, E.T. a Bumblebee', '(max-width:760px) 100vw, 33vw' ); // phpcs:ignore ?>
+		<figure class="b-card b-slide">
+			<?php echo $photo( 1577, $en ? 'Steel Optimus Prime, E.T. and Bumblebee' : 'Ocelový Optimus Prime, E.T. a Bumblebee', '(max-width:760px) 85vw, 400px' ); // phpcs:ignore ?>
 			<figcaption><h3><?php echo esc_html( sam_t( 'b_exp_4' ) ); ?></h3><p><?php echo esc_html( sam_t( 'b_exp_4_p' ) ); ?></p></figcaption>
 		</figure>
+		</div>
+		<div class="b-car-nav">
+			<button type="button" class="b-car-btn" data-dir="-1" aria-label="<?php echo esc_attr( sam_t( 'b_prev' ) ); ?>"><span aria-hidden="true">←</span></button>
+			<div class="b-car-dots" aria-hidden="true"></div>
+			<button type="button" class="b-car-btn" data-dir="1" aria-label="<?php echo esc_attr( sam_t( 'b_next' ) ); ?>"><span aria-hidden="true">→</span></button>
+		</div>
 	</div>
 </section>
 

@@ -230,3 +230,21 @@
 .sam-b .entry .wp-block-button__link,.sam-b .entry .gb-button{border-radius:6px;font-family:var(--bf);font-weight:700}
 .sam-b .entry summary{color:var(--dark);font-family:var(--bf);font-size:1.1rem}
 .sam-b .sam-co-step{border:1px solid var(--line)}
+
+/* karusel „Na sochy se tu sahá“ */
+.b-carousel{position:relative}
+.b-car-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 32px) / 3);gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:2px 2px 6px;overscroll-behavior-x:contain}
+.b-car-track::-webkit-scrollbar{display:none}
+.b-car-track:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.b-slide{scroll-snap-align:start}
+.sam-b .b-slide img{aspect-ratio:4/3}
+.b-car-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin:20px 0 0}
+.b-car-btn{width:48px;height:48px;border-radius:50%;border:2px solid var(--dark);background:transparent;color:var(--dark);font:700 1.2rem/1 var(--bf);cursor:pointer}
+.b-car-btn:hover{background:var(--dark);color:#fff}
+.b-car-btn:disabled{opacity:.3;cursor:default;background:transparent;color:var(--dark)}
+.b-car-dots{display:flex;gap:8px}
+.b-car-dots span{width:8px;height:8px;border-radius:50%;background:#C9C6BF;transition:background .2s,width .2s}
+.b-car-dots span.on{width:22px;border-radius:4px;background:var(--dark)}
+@media (max-width:1000px){.b-car-track{grid-auto-columns:calc((100% - 16px) / 2)}}
+@media (max-width:760px){.b-car-track{grid-auto-columns:85%;margin:0 calc(var(--gut) * -1);padding-left:var(--gut);padding-right:var(--gut);scroll-padding:0 var(--gut)}.b-car-dots{display:none}}
+@media (prefers-reduced-motion:reduce){.b-car-track{scroll-behavior:auto}}

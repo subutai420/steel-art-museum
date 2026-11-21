@@ -116,3 +116,36 @@
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(upd); } }, { passive: true });
   addEventListener('resize', upd); upd();
 })();
+
+/* karusel fotek v sekci „Na sochy se tu sahá“: posun šipkami o jednu stránku, tečky podle polohy */
+(() => {
+  document.querySelectorAll('[data-carousel]').forEach(c => {
+    const track = c.querySelector('.b-car-track'), dots = c.querySelector('.b-car-dots');
+    const prev = c.querySelector('[data-dir="-1"]'), next = c.querySelector('[data-dir="1"]');
+    if (!track) return;
+    const slides = [...track.children];
+    const perPage = () => Math.max(1, Math.round(track.clientWidth / (slides[0].getBoundingClientRect().width || 1)));
+    const pages = () => Math.max(1, Math.ceil((slides.length - perPage()) / perPage()) + 1);
+    const step = () => slides.length > 1 ? slides[1].offsetLeft - slides[0].offsetLeft : track.clientWidth;
+    let n = 0;
+    const draw = () => {
+      const p = pages(), max = track.scrollWidth - track.clientWidth;
+      const cur = max <= 0 ? 0 : Math.round(track.scrollLeft / max * (p - 1));
+      if (dots) {
+        if (n !== p) { dots.innerHTML = '<span></span>'.repeat(p); n = p; }
+        [...dots.children].forEach((d, i) => d.classList.toggle('on', i === cur));
+      }
+      if (prev) prev.disabled = track.scrollLeft <= 2;
+      if (next) next.disabled = track.scrollLeft >= max - 2;
+    };
+    c.addEventListener('click', e => {
+      const b = e.target.closest('[data-dir]'); if (!b) return;
+      track.scrollBy({ left: +b.dataset.dir * step() * perPage(), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+    track.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); track.scrollBy({ left: (e.key === 'ArrowRight' ? 1 : -1) * step() }); }
+    });
+    let t; track.addEventListener('scroll', () => { cancelAnimationFrame(t); t = requestAnimationFrame(draw); }, { passive: true });
+    addEventListener('resize', draw); draw();
+  });
+})();
