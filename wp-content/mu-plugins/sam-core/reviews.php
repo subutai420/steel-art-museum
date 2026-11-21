@@ -6,7 +6,10 @@
  * - Při prvním spuštění se recenze převezmou z tabulky pluginu WP Review Slider Pro
  *   (wpfb_reviews, 50 recenzí Google), plugin pak může jít pryč.
  * - Google se obnovuje jednou denně přes Places API (New), když je v prostředí
- *   SAM_GOOGLE_PLACES_KEY a v nastavení ID místa. Bez klíče zůstávají uložená data.
+ *   SAM_GOOGLE_PLACES_KEY (ID místa se při prvním běhu dohledá samo). Obnova jednou týdně,
+ *   ručně: wp sam-reviews refresh. Google přes API vrací nejvýš 5 recenzí na jazyk, proto se
+ *   stahuje česky i anglicky a nové recenze se přidávají k uloženým (zásobník roste postupně).
+ *   Žádný scraping stránek Googlu (zakazují ho podmínky a blokují ho).
  * - Tripadvisor (hodnocení, počet, odkaz) se zadává ručně v Nastavení → Recenze;
  *   automaticky jen se schváleným Tripadvisor Content API.
  * - Na stránce se nic nenačítá zvenku: žádný JavaScript ani požadavky na Google.
@@ -18,7 +21,7 @@ final class SAM_Reviews {
 	const OPTION       = 'sam_reviews';
 	const ITEMS_OPTION = 'sam_reviews_items';
 	const CRON         = 'sam_reviews_refresh';
-	const MAX_ITEMS    = 60;
+	const MAX_ITEMS    = 150;
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'maybe_seed' ), 50 );
@@ -146,29 +149,83 @@ final class SAM_Reviews {
 	}
 
 	public static function schedule() {
-		if ( ! wp_next_scheduled( self::CRON ) ) {
-			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', self::CRON );
+		$event = wp_get_scheduled_event( self::CRON );
+		if ( $event && 'weekly' !== $event->schedule ) {
+			wp_clear_scheduled_hook( self::CRON ); // dřív denně
+			$event = false;
 		}
+		if ( ! $event ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'weekly', self::CRON );
+		}
+	}
+
+	public static function api_key() {
+		return getenv( 'SAM_GOOGLE_PLACES_KEY' ) ?: ( defined( 'SAM_GOOGLE_PLACES_KEY' ) ? SAM_GOOGLE_PLACES_KEY : '' );
+	}
+
+	/** ID místa na Googlu podle názvu a adresy (Places API Text Search), uloží se do nastavení. */
+	public static function find_place_id() {
+		$key = self::api_key();
+		if ( ! $key ) {
+			return '';
+		}
+		$response = wp_remote_post(
+			'https://places.googleapis.com/v1/places:searchText',
+			array(
+				'timeout' => 15,
+				'headers' => array( 'Content-Type' => 'application/json', 'X-Goog-Api-Key' => $key, 'X-Goog-FieldMask' => 'places.id,places.displayName,places.formattedAddress' ),
+				'body'    => wp_json_encode( array( 'textQuery' => 'Steel Art Museum, Celetná 15, Praha', 'languageCode' => 'cs' ) ),
+			)
+		);
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			error_log( '[sam-reviews] searchText: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_body( $response ) ) );
+			return '';
+		}
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		$id   = (string) ( $data['places'][0]['id'] ?? '' );
+		if ( $id ) {
+			$s                    = self::settings();
+			$s['google_place_id'] = $id;
+			update_option( self::OPTION, $s, false );
+		}
+		return $id;
 	}
 
 	/** Places API (New): hodnocení, počet a až 5 nejnovějších recenzí. */
 	public static function refresh_google() {
-		$key = getenv( 'SAM_GOOGLE_PLACES_KEY' ) ?: ( defined( 'SAM_GOOGLE_PLACES_KEY' ) ? SAM_GOOGLE_PLACES_KEY : '' );
-		$s   = self::settings();
-		if ( ! $key || ! $s['google_place_id'] ) {
+		$key = self::api_key();
+		if ( ! $key ) {
 			return false;
 		}
-		$response = wp_remote_get(
-			'https://places.googleapis.com/v1/places/' . rawurlencode( $s['google_place_id'] ) . '?languageCode=cs',
-			array(
-				'timeout' => 15,
-				'headers' => array( 'X-Goog-Api-Key' => $key, 'X-Goog-FieldMask' => 'rating,userRatingCount,googleMapsUri,reviews' ),
-			)
-		);
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		$s = self::settings();
+		if ( ! $s['google_place_id'] && ! self::find_place_id() ) {
 			return false;
 		}
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		$s       = self::settings();
+		$data    = array();
+		$reviews = array();
+		foreach ( array( 'cs', 'en' ) as $lang ) {
+			$response = wp_remote_get(
+				'https://places.googleapis.com/v1/places/' . rawurlencode( $s['google_place_id'] ) . '?languageCode=' . $lang,
+				array(
+					'timeout' => 15,
+					'headers' => array( 'X-Goog-Api-Key' => $key, 'X-Goog-FieldMask' => 'rating,userRatingCount,googleMapsUri,reviews' ),
+				)
+			);
+			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+				error_log( '[sam-reviews] place ' . $lang . ': ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_body( $response ) ) );
+				continue;
+			}
+			$d = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( ! $data ) {
+				$data = $d;
+			}
+			$reviews = array_merge( $reviews, (array) ( $d['reviews'] ?? array() ) );
+		}
+		if ( ! $data ) {
+			return false;
+		}
+		$data['reviews'] = $reviews;
 		if ( ! empty( $data['rating'] ) ) {
 			$s['google_rating'] = (float) $data['rating'];
 			$s['google_count']  = (int) ( $data['userRatingCount'] ?? $s['google_count'] );
@@ -196,6 +253,7 @@ final class SAM_Reviews {
 				array_unshift( $items, $item );
 			}
 		}
+		usort( $items, static function( $a, $b ) { return strcmp( (string) $b['date'], (string) $a['date'] ); } );
 		update_option( self::ITEMS_OPTION, array_slice( $items, 0, self::MAX_ITEMS ), false );
 		return true;
 	}
@@ -219,7 +277,7 @@ final class SAM_Reviews {
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="sam_reviews_save">';
 		wp_nonce_field( 'sam_reviews_save' );
 		echo '<h2>Google</h2><table class="form-table">';
-		$field( 'google_rating', 'Hodnocení', 'Např. 4.8. S klíčem SAM_GOOGLE_PLACES_KEY a ID místa se obnovuje samo jednou denně.' );
+		$field( 'google_rating', 'Hodnocení', 'Např. 4.8. S klíčem SAM_GOOGLE_PLACES_KEY se obnovuje samo jednou týdně (ID místa se dohledá samo).' );
 		$field( 'google_count', 'Počet recenzí' );
 		$field( 'google_url', 'Odkaz na recenze' );
 		$field( 'google_place_id', 'ID místa (Place ID)', 'Najdete v Google Place ID Finderu, začíná ChIJ…' );
@@ -260,3 +318,24 @@ final class SAM_Reviews {
 	}
 }
 SAM_Reviews::init();
+
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	/**
+	 * Ruční obnova hodnocení a recenzí z Googlu: wp sam-reviews refresh
+	 */
+	WP_CLI::add_command(
+		'sam-reviews refresh',
+		static function () {
+			if ( ! SAM_Reviews::api_key() ) {
+				WP_CLI::error( 'Chybí SAM_GOOGLE_PLACES_KEY v prostředí serveru.' );
+			}
+			$before = count( (array) get_option( SAM_Reviews::ITEMS_OPTION, array() ) );
+			if ( ! SAM_Reviews::refresh_google() ) {
+				WP_CLI::error( 'Obnova se nepovedla (podrobnosti v logu PHP).' );
+			}
+			$s     = SAM_Reviews::settings();
+			$after = count( (array) get_option( SAM_Reviews::ITEMS_OPTION, array() ) );
+			WP_CLI::success( sprintf( 'Google %s, %d hodnocení, recenzí uloženo %d (nových %d). Místo %s.', $s['google_rating'], $s['google_count'], $after, $after - $before, $s['google_place_id'] ) );
+		}
+	);
+}
