@@ -1,59 +1,156 @@
-# Ostrý přechod – kroky v databázi
+# Přechod na nový web (WEDOS → Rosti)
 
-Vývoj běží na kopii databáze. Při přechodu ji nahradí čerstvá databáze z WEDOS, proto se všechny změny nastavení, které na testovacím webu vznikly mimo kód, musí zopakovat. Sem patří každá taková změna (s datem a důvodem).
+Nový web běží na kopii databáze ze 18. 11. 2026. Při přechodu ji nahradí čerstvá databáze z WEDOS, takže všechno, co se na testovacím webu nastavilo mimo kód, se musí zopakovat. Proto je to tady sepsané krok za krokem.
 
-Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm -T wpcli wp` ve `/srv/stack`).
+**Kdo co dělá:**
+- **Daniel** – přístupy a rozhodnutí: Rosti, Cloudflare, Google Tag Manager, skutečný nákup kartou, pokladní.
+- **Claude** – všechno na serveru: databáze, pluginy, klíče, testy.
 
-## Prostředí
-1. `wp option update timezone_string Europe/Prague` – web neměl nastavené časové pásmo (UTC). Bez toho by platnost vstupenek končila v 1:00 a časy objednávek byly o hodinu posunuté. *(19. 11. 2026)*
-2. `wp option delete wcml_currency_switcher_template_objects` – WCML si v ní pamatuje cesty na disku WEDOS a styl přepínače měn by se načítal ze starého webu. *(19. 11. 2026)*
+`wp` níže znamená `docker compose run --rm -T wpcli wp` ve složce `/srv/stack`.
 
-## Vstupenky (sam-tickets)
-3. `wp plugin deactivate event-tickets-with-ticket-scanner-premium event-tickets-with-ticket-scanner` – starý systém vstupenek. Tabulky v databázi zůstávají, import z nich čte. *(19. 11. 2026)*
-4. `wp plugin deactivate email-template-customizer-for-woo` – přepisoval předmět i obsah e-mailu se vstupenkou. *(19. 11. 2026)*
-5. `wp plugin activate sam-tickets` – vytvoří tabulky, roli Pokladní a naplánuje denní úlohu (6:00).
-6. `wp sam-tickets import-legacy` – převede dosud platné vstupenky starého systému (k 19. 11. 2026: 1 046 objednávek, 2 287 kódů). Opakovatelné.
-7. Ve Vstupenky → Nastavení a reporty zkontrolovat datum platnosti (výchozí 30. 6. 2027) a e-mail pro reporty (info@steelartmuseum.eu).
-8. Založit účty pokladních s rolí **Pokladní** (po přihlášení rovnou skener).
+Hotovo předem (není potřeba nic dělat):
+- ✅ SMTP přes WEDOS (web@, odpovědi na info@)
+- ✅ SPF v Cloudflare
+- ✅ klíč Google Places
+- ✅ testovací webhook Stripe
+- ✅ doména pro Apple Pay a Google Pay ve Stripe
 
-## Platby (sam-stripe)
-9. Do `/srv/stack/.env` doplnit **ostré** klíče `SAM_STRIPE_SECRET_KEY`, `SAM_STRIPE_PUBLISHABLE_KEY` a `SAM_STRIPE_WEBHOOK_SECRET` (webhook pro ostrou doménu, události `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`) a `docker compose up -d php cron`.
-   - Ostré klíče vloží klient sám přes `read -s` (nepsat do chatu). Ostrý webhook jde založit přes API ostrým klíčem stejně jako testovací (`POST /v1/webhook_endpoints`, `api_version=2024-06-20`), secret se uloží rovnou do `.env`.
-   - Testovací webhook `we_1Uf1oDLZVLEtBtpM45NMuDtJ` míří na `steelartmuseum-1028.rostiapp.cz` – po přechodu ho smazat (nebo přesměrovat na ostrou doménu pro testy). *(23. 11. 2026: platba, zamítnutí, refundace z webu i ruční refundace ve Stripe ověřeny skutečným doručením webhooku)*
-   - Po přechodu vypnout starý webhook `steelartmuseum.eu/wp-json/wc-stripe/v1/webhook` (ostrý i testovací).
-10. `wp plugin deactivate woo-stripe-payment` – starý plugin Stripe. Refundace jeho objednávek (stripe_cc, stripe_googlepay…) převezme sam-stripe. *(19. 11. 2026)*
-11. `wp plugin activate sam-stripe` a zapnout bránu (WooCommerce → Nastavení → Platby → Stripe – karta, Apple Pay, Google Pay).
-12. Pokladna: stránka „Pokladna“ (ID 9) má místo bloku WooCommerce obsahovat shortcode `[woocommerce_checkout]` (EN překlad stránky stejně). *(19. 11. 2026, do vlastní pokladny ve fázi 4)*
-13. Doména `steelartmuseum.eu` je ve Stripe pro Apple Pay a Google Pay už zaregistrovaná (aktivní, 23. 11. 2026) – po přechodu jen ověřit, že se tlačítka Apple Pay / Google Pay v pokladně zobrazují.
+Hodnoty v `/srv/stack/.env` import databáze nepřepíše.
 
-## Faktury (sam-fakturoid)
-13a. Do `/srv/stack/.env` doplnit `SAM_FAKTUROID_ACCOUNT=roslincorp`, `SAM_FAKTUROID_CLIENT_ID`, `SAM_FAKTUROID_CLIENT_SECRET` (API v3 – stejné údaje, jaké má v nastavení plugin Toret, nebo nové v Nastavení → Uživatelský účet → API) a `SAM_FAKTUROID_NUMBER_FORMAT=235201` (řada, kterou používal Toret). `docker compose up -d php cron`.
-13b. `wp plugin deactivate woo-fakturoid` a `wp plugin activate sam-fakturoid`. Kontrola přihlášení: `wp sam-fakturoid check`. *(19. 11. 2026)*
-13c. Staré objednávky s fakturou z Toretu (meta `fakturoid_invoice_id`) novou fakturu nedostanou; refundace k nim vystaví opravný doklad.
-13d. Ověřeno na skutečném účtu 20. 11. 2026 s údaji z pluginu Toret (volby `wc_settings_tab_fakturoid_client_id` / `_client_secret`): testovací faktura **2026-5676** (349 Kč, Koncový zákazník, objednávka 32442 na kopii) a opravný doklad **2026-5677** (−349 Kč). Oba jsou v účtu roslincorp jako test nového webu, navzájem se ruší.
+---
 
-## Šablona (steel-art-museum)
-14a. `wp theme activate steel-art-museum` a `wp menu location assign main primary` (EN menu přiřadí WPML). GeneratePress a GP Premium můžou zůstat nainstalované kvůli návratu, obsah stránek dál potřebuje plugin GenerateBlocks. *(19. 11. 2026)*
-14b. Po přepnutí smazat stránkovou cache (`rm -rf wp-content/cache/all/*`).
-14d. Úvodní stránka je varianta B (`front-page.php`). Srovnávací stránku `/novy-design/` (ID 32441 na kopii) po spuštění smazat, šablona `page-templates/home-b.php` může jít pryč s ní.
-14e. SEO titulky a popisy (úvodní CZ/EN, ceník, kontakt) doplní sama migrace `sam-core/content-migration-20261120.php` (vyplněné hodnoty nepřepisuje). Kontrola: `wp option get sam_content_migration_20261120_done`.
-14c. Stránka Kontakt se upraví sama při prvním načtení webu (`sam-core/content-migration-20261119.php`: vlastní formulář místo Gutena Forms, pryč trustindex a mapa). Kontrola: `wp option get sam_content_migration_20261119_done`. Až potom smazat cache (14b).
+## 0. Rozhodnout předem – Daniel
 
-## Akce a Magenta (sam-core/promo.php)
-16. `wp plugin deactivate insert-headers-and-footers` – vypne WPCode i se všemi snippety: akce Black Friday (#32397), kalkulačky Magenta CZ/EN (#21251, #26288) a nebezpečný hromadný přepis kupónů `?opravit=preklep2` (#26319). Nahrazuje je modul **WooCommerce → Akce** a kalkulačka v šabloně (shortcody `[smart_ticket_calculator_cz_magenta]` / `_en_magenta` zůstávají na stránkách Magenta Moments). Dokud je snippet akce aktivní, modul se sám vypne.
-17. WooCommerce → Akce: zkontrolovat nastavení. Při prvním spuštění se převezme Black Friday „každá druhá zdarma“ do 30. 11. 2026 23:59 (pak se sama vypne). Kódy MAGENTA-xxxxxx zůstávají jako kupóny WooCommerce, nové se generují tamtéž.
+- [ ] **Termín.** Až po skončení Black Friday (30. 11.). Ideálně úterý až čtvrtek, 7:00–9:00, kdy je nejmíň objednávek. Počítejte s výpadkem prodeje asi 45–60 minut.
+- [ ] **Pokladní.** Seznam lidí (jméno a e-mail), kteří dostanou účet s rolí Pokladní.
+- [ ] **Google Tag Manager.** Kdo opraví kontejner GTM-5RQRRHHQ (viz bod T9).
+- [ ] **Další odesílatelé e-mailů.** Posílá z adres @steelartmuseum.eu ještě něco jiného (Ecomail, Mailchimp, rezervační systém)? Pokud ano, přidám to do SPF.
 
-## E-maily (sam-core/smtp.php)
-18. Do `/srv/stack/.env` doplnit `SAM_SMTP_HOST`, `SAM_SMTP_PORT` (465), `SAM_SMTP_USER`, `SAM_SMTP_PASS` (schránka info@steelartmuseum.eu na WEDOS), případně `SAM_SMTP_FROM`. `docker compose up -d php cron wpcli`. Zkouška: `wp sam-smtp test <adresa>`.
-19. DNS (Cloudflare): doplnit SPF záznam pro odesílání přes WEDOS (podle návodu WEDOS), jinak hrozí, že vstupenky skončí ve spamu.
+## 1. Týden předem
 
-## Souhlas s cookies (sam-core/consent.php)
-20. Lišta a Consent Mode v2 jsou v kódu, nic se nezapíná. Google Tag Manager vkládá modul až po souhlasu (vkládání pluginem DataLayer for eCommerce se vypíná).
-21. **GTM-5RQRRHHQ:** kontejner obsahuje značku, která sama udělí souhlas se vším (cookie `consent_granted`). Upravit v GTM: značku odstranit a souhlas řídit událostí `sam_consent_update` / proměnnými `sam_analytics`, `sam_marketing` (Consent Mode stav posílá web sám). Do té doby web GTM bez souhlasu vůbec nenačte, takže je to bezpečné, jen s „pouze analytikou“ se v GTM udělí i reklamní souhlas.
+### Daniel
+- [ ] **Rosti.** V administraci přidat k aplikaci domény `steelartmuseum.eu` a `www.steelartmuseum.eu`. Zjistit, jak Rosti vystaví HTTPS certifikát a jestli to jde ještě před přepnutím DNS.
+- [ ] **Cloudflare.** Poslat mi screenshot záznamů A/CNAME pro `steelartmuseum.eu` a `www` (kvůli případnému návratu) a nastavení SSL/TLS režimu (Flexible / Full / Full strict).
+- [ ] **GTM.** Opravit kontejner (bod T9). Jde to udělat kdykoli, ale nejpozději do přechodu.
+- [ ] Dát vědět pokladním, kdy se přechází. Skener bude na nové adrese.
 
-## Recenze Google (sam-core/reviews.php)
-22. Do `/srv/stack/.env` doplnit `SAM_GOOGLE_PLACES_KEY` (Google Cloud: zapnout **Places API (New)**, klíč omezit jen na toto API) a `docker compose up -d php cron wpcli`. Pak `wp sam-reviews refresh`: dohledá ID místa, stáhne aktuální hodnocení a počet recenzí a až 10 recenzí (CZ + EN). Dál se obnovuje samo jednou týdně (WP-Cron v kontejneru cron). Na kopii to nejde vyzkoušet, pojistka blokuje HTTP.
+### Claude
+- [ ] **Generální zkouška.** Na kopii projet celý přechod s čerstvou databází z WEDOS: import, všechny kroky z části 2 a testy e2e. Zjistím tím přesnou délku výpadku. Potom vrátím kopii zpět.
+- [ ] Dosynchronizovat média nahraná na WEDOS od 19. 11. Na server znovu nahrát FTP údaje (`.netrc`), po přechodu je zase smažu.
+- [ ] Připravit hodnoty DNS pro Rosti, které Daniel na den D přepne v Cloudflare.
 
-## Server
-14. Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily a HTTP) a zapnout kontejner `cron`.
-15. nginx: testovací doména je od 19. 11. 2026 bez hesla, jen s hlavičkou `X-Robots-Tag: noindex` (mapa `$sam_robots`); ostrá doména hlavičku nedostává. Nic není potřeba měnit.
+## 2. Den D – v tomto pořadí
+
+| # | Kdo | Krok | Detail |
+|---|---|---|---|
+| 1 | Claude | Poslední synchronizace médií z WEDOS | T1 |
+| 2 | Claude | **Starý web do údržby.** Na WEDOS se nahraje soubor `.maintenance`, od teď se nedá nakupovat. Začíná výpadek. | T1 |
+| 3 | Claude | Záloha kopie, export databáze z WEDOS, import na Rosti | T1 |
+| 4 | Claude | Nastavení databáze: časové pásmo, WCML, vypnout staré pluginy (vstupenky, e-mailová šablona, Stripe, Toret, WPCode), zapnout nové | T2–T6 |
+| 5 | Claude | Převést platné vstupenky starého systému (`wp sam-tickets import-legacy`) | T3 |
+| 6 | Claude | **Stripe naostro.** Ostré klíče převezmu ze starého pluginu přímo v databázi (do chatu nejdou), uložím je do `.env` a přes API založím ostrý webhook. | T4 |
+| 7 | Claude | **Fakturoid.** Údaje převezmu z pluginu Toret v databázi, uložím do `.env` a spustím `wp sam-fakturoid check`. | T5 |
+| 8 | Claude | Šablona, menu, migrace obsahu, pokladna, akce. Odstranit pojistku testovacího webu. `wp sam-reviews refresh`. Smazat cache. | T6–T8, T10 |
+| 9 | Claude | Kontrola nového webu ještě na staré DNS (přes `curl --resolve`): stránky CZ/EN, košík, pokladna, skener, e-mail | – |
+| 10 | **Daniel** | **Cloudflare: přepnout DNS** `steelartmuseum.eu` a `www` na Rosti (hodnoty pošlu). Proxy (oranžový mráček) nechat zapnutou. | – |
+| 11 | Claude | Ověřit HTTPS, přesměrování www, `/en/`, sitemap a robots. Konec výpadku. | – |
+| 12 | **Daniel** | **Skutečný nákup.** 1 vstupenka kartou na počítači a 1 přes Apple Pay nebo Google Pay na mobilu. Musí přijít e-mail s PDF a faktura. | – |
+| 13 | Claude | Refundace obou nákupů z administrace. Ověřím vrácení ve Stripe, opravný doklad ve Fakturoidu a zneplatněnou vstupenku. | – |
+| 14 | **Daniel** | Pokladní naskenuje novou vstupenku a jednu starou (z doby před přechodem) | – |
+| 15 | Claude | Založit účty pokladních ze seznamu z bodu 0 | T3 |
+
+**Plán B (něco zásadního nefunguje):**
+1. Daniel v Cloudflare vrátí původní záznamy z části 1.
+2. Claude smaže `.maintenance` na WEDOS a starý web jede dál jako dřív.
+3. Objednávky, které mezitím vznikly na novém webu, dohledám ve Stripe a vyřešíme je ručně.
+
+## 3. Po přechodu
+
+### Claude (ten den až týden)
+- [ ] Hlídat logy PHP, odeslané e-maily, faktury ve Fakturoidu a webhooky ve Stripe (2–3 dny).
+- [ ] Smazat testovací webhook Stripe (`we_1Uf1oDLZVLEtBtpM45NMuDtJ` na rostiapp.cz) a po týdnu i starý webhook `…/wp-json/wc-stripe/v1/webhook` (ostrý i testovací).
+- [ ] Smazat stránku `/novy-design/` a šablonu `page-templates/home-b.php`.
+- [ ] Na WEDOS smazat staré PDF vstupenky v `uploads/tickets_*.pdf`. Jsou veřejně stažitelné.
+- [ ] Smazat FTP údaje ze serveru Rosti.
+
+### Daniel
+- [ ] Google Search Console: odeslat sitemapu a po pár dnech zkontrolovat chyby.
+- [ ] GTM: ověřit, že se po souhlasu měří (GA4 v reálném čase).
+- [ ] Za 2–3 týdny zrušit **webhosting** na WEDOS. **E-maily (MX) ale zůstávají na WEDOS.** Před zrušením ověřit u WEDOS, že schránky nejsou vázané na webhosting.
+
+---
+
+## Technické detaily
+
+### T1 – Databáze a soubory
+- Záloha kopie: `/srv/stack/.deploy/backups`. Databáze WEDOS se exportuje přes FTP a skript na serveru stejně jako 18. 11. (`/srv/stack/import`).
+- Média: noční skript `mirror-*.sh` v `/srv/stack/import`. Kopíruje jen rozdíly. Staré PDF vstupenek se nekopírují, kromě platných podle `keep-ids.txt`.
+- `wp-config.php` na Rosti je vlastní (DB z prostředí, `DISABLE_WP_CRON`), z WEDOS se nepřenáší.
+- Údržba WEDOS: soubor `.maintenance` v kořeni webu (`/domains/steelartmuseum.eu/`) s obsahem `<?php $upgrading = time();`.
+
+### T2 – Prostředí
+- `wp option update timezone_string Europe/Prague` – web neměl nastavené časové pásmo (UTC). Bez toho by platnost vstupenek končila v 1:00 a časy objednávek by byly o hodinu posunuté. *(19. 11. 2026)*
+- `wp option delete wcml_currency_switcher_template_objects` – WCML si v ní pamatuje cesty na disku WEDOS a styl přepínače měn by se načítal ze starého webu. *(19. 11. 2026)*
+
+### T3 – Vstupenky (sam-tickets)
+- `wp plugin deactivate event-tickets-with-ticket-scanner-premium event-tickets-with-ticket-scanner` – starý systém vstupenek. Tabulky v databázi zůstávají, import z nich čte. *(19. 11. 2026)*
+- `wp plugin deactivate email-template-customizer-for-woo` – přepisoval předmět i obsah e-mailu se vstupenkou. *(19. 11. 2026)*
+- `wp plugin activate sam-tickets` – vytvoří tabulky a roli Pokladní a naplánuje denní úlohu (6:00).
+- `wp sam-tickets import-legacy` převede dosud platné vstupenky starého systému (k 19. 11. 2026: 1 046 objednávek, 2 287 kódů). Dá se spustit opakovaně.
+- Ve Vstupenky → Nastavení a reporty zkontrolovat datum platnosti (výchozí 30. 6. 2027) a e-mail pro reporty (info@steelartmuseum.eu).
+- Účty pokladních s rolí **Pokladní** (po přihlášení se otevře rovnou skener).
+
+### T4 – Platby (sam-stripe)
+- Ostré klíče jsou v databázi starého pluginu: volba `woocommerce_stripe_api_settings`, položky `secret_key_live` a `publishable_key_live`. Uloží se do `/srv/stack/.env` jako `SAM_STRIPE_SECRET_KEY` a `SAM_STRIPE_PUBLISHABLE_KEY`, potom `docker compose up -d php cron`.
+- Ostrý webhook se zakládá přes API ostrým klíčem (`POST /v1/webhook_endpoints`, `api_version=2024-06-20`):
+  - URL: `https://steelartmuseum.eu/wp-json/sam-stripe/v1/webhook`
+  - události: `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`
+  - secret (`whsec_…`) se uloží rovnou do `.env` jako `SAM_STRIPE_WEBHOOK_SECRET`.
+- *(23. 11. 2026: na kopii ověřeno skutečným doručením webhooku: platba, zamítnutá karta, refundace z webu i ruční refundace ve Stripe.)*
+- `wp plugin deactivate woo-stripe-payment` – starý plugin Stripe. Refundace jeho objednávek (stripe_cc, stripe_googlepay…) převezme sam-stripe přes API. *(19. 11. 2026)*
+- `wp plugin activate sam-stripe` a zapnout bránu (WooCommerce → Nastavení → Platby → Stripe: karta, Apple Pay, Google Pay).
+- Pokladna: stránka „Pokladna“ (ID 9) má místo bloku WooCommerce obsahovat shortcode `[woocommerce_checkout]`, EN překlad stránky stejně. *(19. 11. 2026)*
+- Doména `steelartmuseum.eu` je ve Stripe pro Apple Pay a Google Pay zaregistrovaná a aktivní *(23. 11. 2026)*. Ověří se nákupem v kroku 12.
+
+### T5 – Faktury (sam-fakturoid)
+- Do `.env`:
+  - `SAM_FAKTUROID_ACCOUNT=roslincorp`
+  - `SAM_FAKTUROID_CLIENT_ID` a `SAM_FAKTUROID_CLIENT_SECRET` z voleb Toretu `wc_settings_tab_fakturoid_client_id` a `_client_secret`
+  - `SAM_FAKTUROID_NUMBER_FORMAT=235201`
+  - potom `docker compose up -d php cron`.
+- `wp plugin deactivate woo-fakturoid` a `wp plugin activate sam-fakturoid`. Kontrola: `wp sam-fakturoid check`. *(19. 11. 2026)*
+- Staré objednávky s fakturou z Toretu (meta `fakturoid_invoice_id`) novou fakturu nedostanou. Refundace k nim vystaví opravný doklad.
+- Ověřeno na skutečném účtu 20. 11. 2026: faktura **2026-5676** (349 Kč) a opravný doklad **2026-5677** (−349 Kč). Navzájem se ruší.
+
+### T6 – Šablona (steel-art-museum)
+- `wp theme activate steel-art-museum` a `wp menu location assign main primary` (EN menu přiřadí WPML). GeneratePress a GP Premium můžou zůstat nainstalované kvůli návratu. Obsah stránek dál potřebuje plugin GenerateBlocks. *(19. 11. 2026)*
+- Úvodní stránka je varianta B (`front-page.php`).
+- Migrace obsahu proběhnou samy při prvním načtení webu. Kontrola:
+  - `wp option get sam_content_migration_20261119_done` a `…20261119b_done` – kontakt
+  - `wp option get sam_content_migration_20261120_done` – SEO titulky
+  - `wp option get sam_content_migration_20261121_done` – zobecněné texty bez jmen postav
+- Až potom smazat cache: `rm -rf wp-content/cache/all/*` a `wp cache flush` (Redis).
+
+### T7 – Akce a Magenta (sam-core/promo.php)
+- `wp plugin deactivate insert-headers-and-footers` vypne WPCode i se všemi snippety:
+  - akce Black Friday (#32397)
+  - kalkulačky Magenta CZ/EN (#21251, #26288)
+  - nebezpečný hromadný přepis kupónů `?opravit=preklep2` (#26319)
+
+  Nahrazuje je modul **WooCommerce → Akce** a kalkulačka v šabloně. Shortcody `[smart_ticket_calculator_cz_magenta]` a `_en_magenta` zůstávají na stránkách Magenta Moments.
+- WooCommerce → Akce: zkontrolovat, že akce je vypnutá nebo nastavená podle aktuální kampaně. Black Friday končí 30. 11. 2026 23:59.
+
+### T8 – Server
+- Smazat `wp-content/mu-plugins/000-rosti-staging-safety.php` (blokuje e-maily, HTTP a Action Scheduler) a `docker compose restart php cron`.
+- nginx: ostrá doména nedostává hlavičku `X-Robots-Tag: noindex` (mapa `$sam_robots`). Testovací doména ji má dál. Nic se nemění.
+
+### T9 – Souhlas s cookies a GTM (sam-core/consent.php)
+- Lišta a Consent Mode v2 jsou v kódu. GTM vkládá web až po souhlasu.
+- **GTM-5RQRRHHQ (Daniel nebo správce GTM):** kontejner obsahuje značku, která sama udělí souhlas se vším (cookie `consent_granted`). Tu značku odstranit. Souhlas řídit událostí `sam_consent_update` a proměnnými `sam_analytics` a `sam_marketing`. Stav Consent Mode posílá web sám. Do opravy se při volbě „pouze analytika“ v GTM udělí i reklamní souhlas.
+
+### T10 – Recenze Google (sam-core/reviews.php)
+- Klíč `SAM_GOOGLE_PLACES_KEY` už je v `.env`. Po odstranění pojistky spustit `wp sam-reviews refresh`: dohledá místo a stáhne hodnocení, počet recenzí a nejnovější recenze CZ + EN. Dál se obnovuje samo jednou týdně.
+
+### T11 – E-maily (sam-core/smtp.php) ✅
+- V `.env` jsou údaje `SAM_SMTP_*`: wes1-smtp.wedos.net:587, schránka web@steelartmuseum.eu, odpovědi na info@. Zkouška: `wp sam-smtp test <adresa>` (23. 11. 2026 OK).
+- SPF v Cloudflare: `v=spf1 mx a include:_spf.we.wedos.net ~all` (23. 11. 2026). DKIM podepisuje WEDOS automaticky.
