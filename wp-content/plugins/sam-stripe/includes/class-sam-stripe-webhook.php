@@ -149,7 +149,13 @@ final class SAM_Stripe_Webhook {
 		foreach ( $order->get_refunds() as $refund ) {
 			$known[] = (string) $refund->get_meta( '_sam_stripe_refund', true );
 		}
-		foreach ( (array) ( $charge['refunds']['data'] ?? array() ) as $refund ) {
+		// Od API 2022-11-15 událost charge.refunded seznam refundací nenese – načteme ho.
+		$refunds = (array) ( $charge['refunds']['data'] ?? array() );
+		if ( ! $refunds && ! empty( $charge['id'] ) ) {
+			$list    = ( new SAM_Stripe_Client() )->get( 'refunds', array( 'charge' => (string) $charge['id'], 'limit' => 100 ) );
+			$refunds = is_wp_error( $list ) ? array() : (array) ( $list['data'] ?? array() );
+		}
+		foreach ( $refunds as $refund ) {
 			$id = (string) ( $refund['id'] ?? '' );
 			if ( ! $id || in_array( $id, $known, true ) || ! empty( $refund['metadata']['wc_refund_id'] ) ) {
 				continue;
