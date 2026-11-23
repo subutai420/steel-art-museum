@@ -4,7 +4,8 @@
  *
  * Údaje jsou v prostředí serveru (/srv/stack/.env → docker-compose), ne v databázi ani v kódu:
  *   SAM_SMTP_HOST, SAM_SMTP_PORT (465 = SSL, 587 = STARTTLS), SAM_SMTP_USER, SAM_SMTP_PASS,
- *   SAM_SMTP_FROM (výchozí info@steelartmuseum.eu), SAM_SMTP_FROM_NAME (výchozí Steel Art Museum).
+ *   SAM_SMTP_FROM (výchozí info@steelartmuseum.eu), SAM_SMTP_FROM_NAME (výchozí Steel Art Museum),
+ *   SAM_SMTP_REPLY_TO (výchozí info@steelartmuseum.eu; odpovědi, když e-mail nemá vlastní Reply-To).
  * Bez SAM_SMTP_HOST se nic nemění (PHP mail()).
  *
  * Kontrola: wp eval 'var_dump( SAM_SMTP::configured() );'  a  wp sam-smtp test <adresa>
@@ -51,6 +52,12 @@ final class SAM_SMTP {
 		$mailer->Timeout = 15;
 		// Návratová adresa (envelope sender) = odesílatel, kvůli SPF.
 		$mailer->Sender = self::from( $mailer->From );
+		// Odesílá se ze samostatné schránky (web@), odpovědi zákazníků mají jít na info@.
+		// Vlastní Reply-To (např. kontaktní formulář → návštěvník) zůstává.
+		$reply = self::env( 'SAM_SMTP_REPLY_TO', 'info@steelartmuseum.eu' );
+		if ( ! $mailer->getReplyToAddresses() && is_email( $reply ) && strtolower( $reply ) !== strtolower( $mailer->From ) ) {
+			$mailer->addReplyTo( $reply, self::from_name( '' ) );
+		}
 	}
 
 	public static function from( $from ) {
