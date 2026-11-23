@@ -18,10 +18,13 @@ Pořadí platí pro ostrou databázi po importu (`wp` = `docker compose run --rm
 
 ## Platby (sam-stripe)
 9. Do `/srv/stack/.env` doplnit **ostré** klíče `SAM_STRIPE_SECRET_KEY`, `SAM_STRIPE_PUBLISHABLE_KEY` a `SAM_STRIPE_WEBHOOK_SECRET` (webhook pro ostrou doménu, události `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`) a `docker compose up -d php cron`.
+   - Ostré klíče vloží klient sám přes `read -s` (nepsat do chatu). Ostrý webhook jde založit přes API ostrým klíčem stejně jako testovací (`POST /v1/webhook_endpoints`, `api_version=2024-06-20`), secret se uloží rovnou do `.env`.
+   - Testovací webhook `we_1Uf1oDLZVLEtBtpM45NMuDtJ` míří na `steelartmuseum-1028.rostiapp.cz` – po přechodu ho smazat (nebo přesměrovat na ostrou doménu pro testy). *(23. 11. 2026: platba, zamítnutí, refundace z webu i ruční refundace ve Stripe ověřeny skutečným doručením webhooku)*
+   - Po přechodu vypnout starý webhook `steelartmuseum.eu/wp-json/wc-stripe/v1/webhook` (ostrý i testovací).
 10. `wp plugin deactivate woo-stripe-payment` – starý plugin Stripe. Refundace jeho objednávek (stripe_cc, stripe_googlepay…) převezme sam-stripe. *(19. 11. 2026)*
 11. `wp plugin activate sam-stripe` a zapnout bránu (WooCommerce → Nastavení → Platby → Stripe – karta, Apple Pay, Google Pay).
 12. Pokladna: stránka „Pokladna“ (ID 9) má místo bloku WooCommerce obsahovat shortcode `[woocommerce_checkout]` (EN překlad stránky stejně). *(19. 11. 2026, do vlastní pokladny ve fázi 4)*
-13. V Stripe zaregistrovat ostrou doménu pro Apple Pay (Nastavení → Platební metody → Domény).
+13. Doména `steelartmuseum.eu` je ve Stripe pro Apple Pay a Google Pay už zaregistrovaná (aktivní, 23. 11. 2026) – po přechodu jen ověřit, že se tlačítka Apple Pay / Google Pay v pokladně zobrazují.
 
 ## Faktury (sam-fakturoid)
 13a. Do `/srv/stack/.env` doplnit `SAM_FAKTUROID_ACCOUNT=roslincorp`, `SAM_FAKTUROID_CLIENT_ID`, `SAM_FAKTUROID_CLIENT_SECRET` (API v3 – stejné údaje, jaké má v nastavení plugin Toret, nebo nové v Nastavení → Uživatelský účet → API) a `SAM_FAKTUROID_NUMBER_FORMAT=235201` (řada, kterou používal Toret). `docker compose up -d php cron`.
