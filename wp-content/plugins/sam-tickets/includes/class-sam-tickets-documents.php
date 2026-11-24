@@ -29,6 +29,7 @@ final class SAM_Tickets_Documents {
 	public function register_hooks() {
 		add_action( 'sam_ticket_created', array( $this, 'handle_ticket_created' ), 10, 2 );
 		add_action( 'template_redirect', array( $this, 'handle_download' ), 1 );
+		add_action( 'template_redirect', array( $this, 'handle_legacy_link' ), 0 );
 		add_action( 'woocommerce_thankyou', array( $this, 'render_order_qr' ), 5 );
 		add_action( 'woocommerce_view_order', array( $this, 'render_order_qr' ), 5 );
 		add_filter( 'woocommerce_email_attachments', array( $this, 'email_attachments' ), 10, 4 );
@@ -510,6 +511,31 @@ final class SAM_Tickets_Documents {
 			}
 		}
 		$this->pending_embeds = array();
+	}
+
+	/**
+	 * Odkazy na vstupenky ze starého systému (Event Tickets with Ticket Scanner), které mají zákazníci
+	 * v e-mailech: /wp-content/plugins/event-tickets-with-ticket-scanner/ticket/<id>-<objednávka>-<KÓD>[?pdf].
+	 * Přesměrují na PDF vstupenky v novém systému (jedna vstupenka na objednávku, platí pro všechny kódy).
+	 */
+	public function handle_legacy_link() {
+		$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		if ( false === strpos( $uri, '/event-tickets-with-ticket-scanner/ticket/' ) ) {
+			return;
+		}
+		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+		if ( ! preg_match( '#/event-tickets-with-ticket-scanner/ticket/(\d+-\d+-[A-Za-z0-9]{12,40})/?$#', $path, $m ) ) {
+			return;
+		}
+		$parsed = SAM_Tickets_REST::parse_code( $m[1] );
+		$ticket = $parsed && 'legacy' === $parsed['type'] ? $this->repository->find_by_legacy_code( $parsed['value'] ) : null;
+		nocache_headers();
+		header( 'X-Robots-Tag: noindex' );
+		if ( ! $ticket ) {
+			wp_die( esc_html__( 'Tato vstupenka už není platná nebo nebyla nalezena. Napište nám prosím na info@steelartmuseum.eu.', 'sam-tickets' ), '', array( 'response' => 404 ) );
+		}
+		wp_safe_redirect( $this->download_url( $ticket ), 302 );
+		exit;
 	}
 
 	public function handle_download() {
