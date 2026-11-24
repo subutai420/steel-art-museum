@@ -7,7 +7,7 @@
 # Nastavení z prostředí nebo ze souboru .env v kořeni repozitáře (necommituje se):
 #   SAM_SSH_HOST, SAM_SSH_PORT, SAM_SSH_USER
 #   SAM_SSH_KEY    (volitelné, výchozí ~/.ssh/sam_rosti)
-#   SAM_SITE_HOST  (volitelné, výchozí steelartmuseum.eu) – doména webu pro kontrolu stránek (teď testovací)
+#   SAM_SITE_HOST  (volitelné, výchozí steelartmuseum.eu) – doména webu pro kontrolu stránek
 #
 # Skript odmítne nasadit, pokud se soubory na serveru liší od commitu v značce
 # posledního nasazení (někdo je upravil přímo na serveru). Takové změny nejdřív
