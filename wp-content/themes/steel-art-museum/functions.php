@@ -157,7 +157,7 @@ function sam_nav_fallback() {
 }
 
 /** Odkaz na druhou jazykovou verzi aktuální stránky. */
-function sam_lang_switch() {
+function sam_lang_switch( $class = 'lang' ) {
 	$langs = apply_filters( 'wpml_active_languages', null, array( 'skip_missing' => 0 ) );
 	if ( empty( $langs ) || ! is_array( $langs ) ) {
 		return;
@@ -167,7 +167,9 @@ function sam_lang_switch() {
 			continue;
 		}
 		$label = 'en' === $code ? 'English' : 'Česky';
-		printf( '<a class="lang" href="%s" lang="%s" hreflang="%s">%s</a>', esc_url( $l['url'] ), esc_attr( $code ), esc_attr( $code ), esc_html( $label ) );
+		// Krátká varianta v přilepené hlavičce: „EN“ / „CZ“.
+		$text = 'lang' === $class ? $label : ( 'en' === $code ? 'EN' : 'CZ' );
+		printf( '<a class="%s" href="%s" lang="%s" hreflang="%s" aria-label="%s">%s</a>', esc_attr( $class ), esc_url( $l['url'] ), esc_attr( $code ), esc_attr( $code ), esc_attr( $label ), esc_html( $text ) );
 	}
 }
 

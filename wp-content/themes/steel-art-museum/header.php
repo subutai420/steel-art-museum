@@ -7,6 +7,14 @@ defined( 'ABSPATH' ) || exit;
 $sam_lang    = sam_lang();
 $sam_sources = class_exists( 'SAM_Reviews' ) ? SAM_Reviews::sources() : array();
 $sam_google  = $sam_sources['google'] ?? null;
+$sam_tix_url = is_front_page() ? '#vstupenky' : sam_home_url( 'vstupenky' );
+// Akce z modulu WooCommerce → Akce: „Black Friday do 30. 11.: každá druhá vstupenka zdarma“ → štítek + text.
+$sam_promo = function_exists( 'sam_promo_active' ) && sam_promo_active() ? (string) sam_promo_banner( $sam_lang ) : '';
+$sam_promo_tag  = '';
+$sam_promo_text = $sam_promo;
+if ( false !== strpos( $sam_promo, ':' ) ) {
+	list( $sam_promo_tag, $sam_promo_text ) = array_map( 'trim', explode( ':', $sam_promo, 2 ) );
+}
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -17,6 +25,16 @@ $sam_google  = $sam_sources['google'] ?? null;
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip" href="#obsah"><?php echo esc_html( sam_t( 'skip' ) ); ?></a>
+<?php if ( $sam_promo ) : ?>
+<div class="b-promo" data-promo-end="<?php echo esc_attr( sam_promo_end_iso() ); ?>">
+	<a class="b-promo-link" href="<?php echo esc_url( $sam_tix_url ); ?>">
+		<?php if ( $sam_promo_tag ) : ?><span class="b-promo-tag"><?php echo esc_html( $sam_promo_tag ); ?></span><?php endif; ?>
+		<span class="b-promo-text"><?php echo esc_html( $sam_promo_text ); ?></span>
+		<span class="b-promo-count" data-promo-count data-label="<?php echo esc_attr( sam_t( 'b_promo_ends' ) ); ?>" hidden></span>
+		<span class="b-promo-cta"><?php echo esc_html( sam_t( 'b_promo_cta' ) ); ?> →</span>
+	</a>
+</div>
+<?php endif; ?>
 <div class="b-topbar">
 	<span class="b-topbar-item"><?php echo sam_icon( 'clock' ); // phpcs:ignore ?> <?php echo esc_html( sam_t( 'b_open' ) ); ?></span>
 	<a class="b-topbar-item" target="_blank" rel="noopener" href="https://maps.google.com/?q=Celetn%C3%A1+15,+Praha+1"><?php echo sam_icon( 'pin' ); // phpcs:ignore ?> <?php echo esc_html( sam_t( 'b_address' ) ); ?></a>
@@ -44,6 +62,10 @@ $sam_google  = $sam_sources['google'] ?? null;
 		sam_lang_switch();
 		?>
 	</nav>
-	<a class="b-btn b-btn--light top-cta" href="<?php echo esc_url( is_front_page() ? '#vstupenky' : sam_home_url( 'vstupenky' ) ); ?>"><?php echo esc_html( sam_t( 'b_tickets' ) ); ?></a>
+	<?php if ( $sam_promo ) : ?>
+	<a class="top-promo" href="<?php echo esc_url( $sam_tix_url ); ?>"><?php if ( $sam_promo_tag ) : ?><b><?php echo esc_html( $sam_promo_tag ); ?></b> <?php endif; ?><span><?php echo esc_html( $sam_promo_text ); ?></span></a>
+	<?php endif; ?>
+	<?php sam_lang_switch( 'top-lang' ); ?>
+	<a class="b-btn b-btn--light top-cta" href="<?php echo esc_url( $sam_tix_url ); ?>"><?php echo esc_html( sam_t( 'b_tickets' ) ); ?></a>
 	<button class="burger" type="button" aria-controls="menu" aria-expanded="false"><span class="burger-lines" aria-hidden="true"></span><span class="sr"><?php echo esc_html( sam_t( 'menu' ) ); ?></span></button>
 </header>
