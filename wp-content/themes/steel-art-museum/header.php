@@ -26,12 +26,12 @@ if ( false !== strpos( $sam_promo, ':' ) ) {
 <?php wp_body_open(); ?>
 <a class="skip" href="#obsah"><?php echo esc_html( sam_t( 'skip' ) ); ?></a>
 <?php if ( $sam_promo ) : ?>
-<div class="b-promo" data-promo-end="<?php echo esc_attr( sam_promo_end_iso() ); ?>">
-	<a class="b-promo-link" href="<?php echo esc_url( $sam_tix_url ); ?>">
-		<?php if ( $sam_promo_tag ) : ?><span class="b-promo-tag"><?php echo esc_html( $sam_promo_tag ); ?></span><?php endif; ?>
-		<span class="b-promo-text"><?php echo esc_html( $sam_promo_text ); ?></span>
-		<span class="b-promo-count" data-promo-count data-label="<?php echo esc_attr( sam_t( 'b_promo_ends' ) ); ?>" hidden></span>
-		<span class="b-promo-cta"><?php echo esc_html( sam_t( 'b_promo_cta' ) ); ?> →</span>
+<div class="b-deal" data-promo-end="<?php echo esc_attr( sam_promo_end_iso() ); ?>">
+	<a class="b-deal-link" href="<?php echo esc_url( $sam_tix_url ); ?>">
+		<?php if ( $sam_promo_tag ) : ?><span class="b-deal-tag"><?php echo esc_html( $sam_promo_tag ); ?></span><?php endif; ?>
+		<span class="b-deal-text"><?php echo esc_html( $sam_promo_text ); ?></span>
+		<span class="b-deal-count" data-promo-count data-label="<?php echo esc_attr( sam_t( 'b_promo_ends' ) ); ?>" hidden></span>
+		<span class="b-deal-cta"><?php echo esc_html( sam_t( 'b_promo_cta' ) ); ?> →</span>
 	</a>
 </div>
 <?php endif; ?>
