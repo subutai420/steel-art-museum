@@ -80,8 +80,8 @@ add_action(
 		( new SAM_Tickets_REST( $repository ) )->register_hooks();
 		$legacy->register_hooks();
 
-		if ( is_admin() ) {
-			( new SAM_Tickets_Admin( $repository, $service, $legacy ) )->register_hooks();
-		}
+		// Vždy, nejen v administraci: přesměrování pokladní po přihlášení (wp-login.php, Můj účet)
+		// a skrytá horní lišta na webu. Ostatní háčky třídy se mimo administraci nespustí.
+		( new SAM_Tickets_Admin( $repository, $service, $legacy ) )->register_hooks();
 	}
 );
