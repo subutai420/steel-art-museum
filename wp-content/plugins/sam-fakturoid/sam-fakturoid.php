@@ -35,6 +35,8 @@ add_action(
 		}
 		require_once SAM_FAKTUROID_DIR . 'includes/class-sam-fakturoid-service.php';
 		SAM_Fakturoid_Service::instance()->init();
+		require_once SAM_FAKTUROID_DIR . 'includes/class-sam-fakturoid-watchdog.php';
+		SAM_Fakturoid_Watchdog::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			require_once SAM_FAKTUROID_DIR . 'includes/class-sam-fakturoid-cli.php';
