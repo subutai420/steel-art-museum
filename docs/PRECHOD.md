@@ -8,6 +8,20 @@ Nový web běží na kopii databáze ze 18. 11. 2026. Při přechodu ji nahradí
 
 `wp` níže znamená `docker compose run --rm -T wpcli wp` ve složce `/srv/stack`.
 
+**Skript [scripts/prechod.sh](../scripts/prechod.sh)** (na serveru `/srv/stack/prechod.sh`) udělá celou serverovou část dne D jedním příkazem: `REZIM=ostre bash prechod.sh vse <dump>`. Jednotlivé kroky jdou spustit i zvlášť (`bash prechod.sh` vypíše nápovědu). Logy jsou v `/srv/stack/.deploy/prechod/`.
+
+**Generální zkouška 24. 11. 2026** (`REZIM=zkouska`, dump WEDOS z 18. 11.):
+- Celý běh trval **8 min 24 s**:
+  - záloha 9 s
+  - import 2 min 31 s (18. 11. trval ručně 74 min)
+  - přepis domény 3 min (v ostrém režimu odpadá)
+  - nastavení 51 s
+  - vstupenky 49 s (1 046 objednávek, 2 287 kódů)
+  - spuštění a kontrola 68 s
+- Nastavení po zkoušce odpovídá stavu testovacího webu před ní.
+- Všech 88 kontrol testů e2e prošlo: vstupenky 18, Stripe 22, Fakturoid 26, akce 14, e-maily EN 8.
+- **Odhad výpadku prodeje v den D: 15–20 minut.** Zahrnuje export databáze, skript asi 6 minut, kontrolu a přepnutí DNS.
+
 Hotovo předem (není potřeba nic dělat):
 - ✅ SMTP přes WEDOS (web@, odpovědi na info@)
 - ✅ SPF v Cloudflare
@@ -21,9 +35,12 @@ Hodnoty v `/srv/stack/.env` import databáze nepřepíše.
 
 ## 0. Rozhodnout předem – Daniel
 
-- [ ] **Termín.** Až po skončení Black Friday (30. 11.). Ideálně úterý až čtvrtek, 7:00–9:00, kdy je nejmíň objednávek. Počítejte s výpadkem prodeje asi 45–60 minut.
+- [ ] **Termín.** Až po skončení Black Friday (30. 11.). Ideálně úterý až čtvrtek, 7:00–9:00, kdy je nejmíň objednávek. Počítejte s výpadkem prodeje asi 15–20 minut (podle generální zkoušky).
 - [ ] **Pokladní.** Seznam lidí (jméno a e-mail), kteří dostanou účet s rolí Pokladní.
 - [ ] **Google Tag Manager.** Kdo opraví kontejner GTM-5RQRRHHQ (viz bod T9).
+- [ ] **Export databáze v den D.** Jsou dvě možnosti:
+  - Daniel udělá zálohu databáze ve WPvividu (Zálohy → jen databáze → stáhnout) a pošle soubor, stejně jako 18. 11.;
+  - Claude na pár minut nahraje na WEDOS skript, který databázi vyexportuje sám, a hned ho smaže. Potřebuje k tomu Danielův souhlas.
 - [ ] **Další odesílatelé e-mailů.** Posílá z adres @steelartmuseum.eu ještě něco jiného (Ecomail, Mailchimp, rezervační systém)? Pokud ano, přidám to do SPF.
 
 ## 1. Týden předem
@@ -35,7 +52,8 @@ Hodnoty v `/srv/stack/.env` import databáze nepřepíše.
 - [ ] Dát vědět pokladním, kdy se přechází. Skener bude na nové adrese.
 
 ### Claude
-- [ ] **Generální zkouška.** Na kopii projet celý přechod s čerstvou databází z WEDOS: import, všechny kroky z části 2 a testy e2e. Zjistím tím přesnou délku výpadku. Potom vrátím kopii zpět.
+- [x] **Generální zkouška** s databází z 18. 11. *(24. 11. 2026, výsledky nahoře)*
+- [ ] Den nebo dva před přechodem ještě jednou rychlá zkouška s čerstvým dumpem: `REZIM=zkouska bash prechod.sh vse <dump>` a testy e2e.
 - [ ] Dosynchronizovat média nahraná na WEDOS od 19. 11. Na server znovu nahrát FTP údaje (`.netrc`), po přechodu je zase smažu.
 - [ ] Připravit hodnoty DNS pro Rosti, které Daniel na den D přepne v Cloudflare.
 
@@ -43,15 +61,11 @@ Hodnoty v `/srv/stack/.env` import databáze nepřepíše.
 
 | # | Kdo | Krok | Detail |
 |---|---|---|---|
-| 1 | Claude | Poslední synchronizace médií z WEDOS | T1 |
-| 2 | Claude | **Starý web do údržby.** Na WEDOS se nahraje soubor `.maintenance`, od teď se nedá nakupovat. Začíná výpadek. | T1 |
-| 3 | Claude | Záloha kopie, export databáze z WEDOS, import na Rosti | T1 |
-| 4 | Claude | Nastavení databáze: časové pásmo, WCML, vypnout staré pluginy (vstupenky, e-mailová šablona, Stripe, Toret, WPCode), zapnout nové | T2–T6 |
-| 5 | Claude | Převést platné vstupenky starého systému (`wp sam-tickets import-legacy`) | T3 |
-| 6 | Claude | **Stripe naostro.** Ostré klíče převezmu ze starého pluginu přímo v databázi (do chatu nejdou), uložím je do `.env` a přes API založím ostrý webhook. | T4 |
-| 7 | Claude | **Fakturoid.** Údaje převezmu z pluginu Toret v databázi, uložím do `.env` a spustím `wp sam-fakturoid check`. | T5 |
-| 8 | Claude | Šablona, menu, migrace obsahu, pokladna, akce. Odstranit pojistku testovacího webu. `wp sam-reviews refresh`. Smazat cache. | T6–T8, T10 |
-| 9 | Claude | Kontrola nového webu ještě na staré DNS (přes `curl --resolve`): stránky CZ/EN, košík, pokladna, skener, e-mail | – |
+| 1 | Claude | Poslední synchronizace médií z WEDOS (`prechod.sh media`) | T1 |
+| 2 | Claude | **Starý web do údržby** (`REZIM=ostre prechod.sh udrzba on`). Na WEDOS se nahraje soubor `.maintenance`, od teď se nedá nakupovat. Začíná výpadek. | T1 |
+| 3 | Daniel / Claude | Export databáze z WEDOS (způsob podle bodu 0) | T1 |
+| 4–8 | Claude | **`REZIM=ostre bash prechod.sh vse <dump>`** (asi 6 min). Udělá:<br>• záloha a import<br>• nastavení a pluginy (vypne staré: vstupenky, e-mailovou šablonu, Stripe, Toret, WPCode)<br>• Stripe naostro: klíče ze starého pluginu do `.env` a ostrý webhook přes API<br>• Fakturoid z Toretu do `.env`<br>• převod vstupenek<br>• odstranění pojistky testovacího webu<br>• restart, cache, recenze Google | T2–T8, T10 |
+| 9 | Claude | Kontrola nového webu ještě na staré DNS. Skript ji dělá sám přes nginx s hlavičkou Host. Navíc ručně: skener, zkušební e-mail, Fakturoid check. | – |
 | 10 | **Daniel** | **Cloudflare: přepnout DNS** `steelartmuseum.eu` a `www` na Rosti (hodnoty pošlu). Proxy (oranžový mráček) nechat zapnutou. | – |
 | 11 | Claude | Ověřit HTTPS, přesměrování www, `/en/`, sitemap a robots. Konec výpadku. | – |
 | 12 | **Daniel** | **Skutečný nákup.** 1 vstupenka kartou na počítači a 1 přes Apple Pay nebo Google Pay na mobilu. Musí přijít e-mail s PDF a faktura. | – |
