@@ -201,8 +201,9 @@ function sam_ajax_add_tickets() {
 	if ( WC()->session && ! WC()->session->has_session() ) {
 		WC()->session->set_customer_session_cookie( true );
 	}
+	do_action( 'sam_tickets_added_to_cart' ); // měření (mu-plugins/sam-core/meta.php)
 
-	$checkout = get_permalink( (int) apply_filters( 'wpml_object_id', wc_get_page_id( 'checkout' ), 'page', true, $lang ) );
+	$checkout =get_permalink( (int) apply_filters( 'wpml_object_id', wc_get_page_id( 'checkout' ), 'page', true, $lang ) );
 	wp_send_json_success( array( 'redirect' => $checkout ?: wc_get_checkout_url() ) );
 }
 add_action( 'wp_ajax_sam_add_tickets', 'sam_ajax_add_tickets' );
