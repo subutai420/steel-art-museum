@@ -163,7 +163,7 @@ fi
 
 # Kontrola stránek přímo na serveru (přes nginx, bez Rosti proxy). Testovací doména je za heslem:
 # přihlašovací údaje čte ze souboru $REMOTE_STACK/.deploy/smoke-auth (uživatel:heslo, jen root), pokud existuje.
-SMOKE="$(remote "auth=''; [ -f $REMOTE_STACK/.deploy/smoke-auth ] && auth=\"-u \$(cat $REMOTE_STACK/.deploy/smoke-auth)\"; for p in $SMOKE_PATHS; do sep='?'; case \"\$p\" in *\?*) sep='&';; esac; code=\$(curl -s -o /tmp/.sam-smoke -w '%{http_code}' --max-time 60 \$auth -H 'Host: $SITE_HOST' -H 'X-Forwarded-Proto: https' \"http://127.0.0.1\$p\${sep}deploycheck=\$RANDOM\"); if [ \"\$code\" != 200 ] || grep -qi 'critical error\|kritické chybě\|Fatal error\|Parse error' /tmp/.sam-smoke; then echo \"FAIL \$code \$p\"; else echo \"ok \$code \$p\"; fi; done; rm -f /tmp/.sam-smoke" < /dev/null)"
+SMOKE="$(remote "auth=''; [ -f $REMOTE_STACK/.deploy/smoke-auth ] && auth=\"-u \$(cat $REMOTE_STACK/.deploy/smoke-auth)\"; for p in $SMOKE_PATHS; do sep='?'; case \"\$p\" in *\?*) sep='&';; esac; code=\$(curl -s -o /tmp/.sam-smoke -w '%{http_code}' --max-time 60 \$auth -H 'Host: $SITE_HOST' -H 'X-Forwarded-Proto: https' \"http://127.0.0.1\$p\${sep}deploycheck=$(date +%s)\"); if [ \"\$code\" != 200 ] || grep -qi 'critical error\|kritické chybě\|Fatal error\|Parse error' /tmp/.sam-smoke; then echo \"FAIL \$code \$p\"; else echo \"ok \$code \$p\"; fi; done; rm -f /tmp/.sam-smoke" < /dev/null)"
 echo "$SMOKE"
 if grep -q '^FAIL' <<< "$SMOKE"; then
 	echo "Značka nasazení nebyla aktualizována." >&2
