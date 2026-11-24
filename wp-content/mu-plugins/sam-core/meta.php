@@ -368,7 +368,8 @@ final class SAM_Meta {
 	private static function thankyou_events() {
 		$order = wc_get_order( absint( get_query_var( 'order-received' ) ) );
 		$key   = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
-		if ( ! $order || ! $key || ! hash_equals( $order->get_order_key(), $key ) || ! $order->is_paid() ) {
+		// woocommerce_thankyou neproběhne, když WooCommerce po hostovi chce ověření e-mailu – pak nic nevypisovat.
+		if ( ! did_action( 'woocommerce_thankyou' ) || ! $order || ! $key || ! hash_equals( $order->get_order_key(), $key ) || ! $order->is_paid() ) {
 			return array();
 		}
 		if ( ! $order->get_meta( '_sam_meta_px' ) ) {
