@@ -9,8 +9,8 @@
  *   Kontejner GTM-5RQRRHHQ totiž sám uděluje souhlas se vším (cookie consent_granted), takže
  *   načtený bez souhlasu by ukládal cookies Google Analytics a Ads. Vložení GTM pluginem
  *   DataLayer for eCommerce se proto vypíná a GTM vkládá tento modul.
- * - Pixel Facebooku (PixelYourSite) se spustí až po souhlasu s marketingem (skripty čekají
- *   jako type="text/plain").
+ * - Pixel Facebooku (vlastní modul meta.php, dřív PixelYourSite) se spustí až po souhlasu
+ *   s marketingem (skripty čekají jako type="text/plain" data-sam-consent="m").
  * - Atribuce objednávek WooCommerce (cookies sbjs_*) až po souhlasu s analytikou.
  * - Odkaz „Nastavení cookies“: libovolný prvek s atributem data-sam-consent-open.
  */

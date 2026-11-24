@@ -173,6 +173,7 @@ final class SAM_Meta {
 				$fbc = 'fb.1.' . (int) round( microtime( true ) * 1000 ) . '.' . $q['fbclid'];
 			}
 		}
+		$url = remove_query_arg( 'key', $url ); // klíč objednávky z děkovací stránky Metě neposílat
 		self::send(
 			array(
 				'event_name'       => 'PageView',
@@ -338,7 +339,7 @@ final class SAM_Meta {
 			'event_name'       => $name,
 			'event_id'         => 'purchase.' . $order->get_id(),
 			'event_time'       => $paid ? max( $paid->getTimestamp(), time() - 6 * DAY_IN_SECONDS ) : time(),
-			'event_source_url' => $order->get_checkout_order_received_url(),
+			'event_source_url' => strtok( $order->get_checkout_order_received_url(), '?' ), // bez klíče objednávky
 			'user_data'        => $user,
 			'custom_data'      => self::order_data( $order ),
 		);
