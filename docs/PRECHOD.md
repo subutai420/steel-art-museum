@@ -1,5 +1,30 @@
 # Přechod na nový web (WEDOS → Rosti)
 
+> **✅ PŘECHOD PROVEDEN 24. 11. 2026**
+>
+> **Průběh (časy v UTC):**
+> - Údržba WEDOS 6:32, export DB 15 s, `prechod.sh vse` 4 min 34 s.
+> - Přepnutí DNS v Cloudflare kolem 6:40, výpadek prodeje asi 8 minut.
+> - Let's Encrypt certifikát od Rosti vystaven během pár minut. Cloudflare SSL je teď **Full (strict)**: Flexible s certifikátem na Rosti cyklí v přesměrování.
+>
+> **Ověřeno:**
+> - Skutečný nákup #32554 kartou 219 Kč: platba Stripe, vstupenka, e-maily, faktura 2026-5758.
+> - Refundace: Stripe `re_3UfDUP…`, opravný doklad 2026-5759, vstupenka zneplatněná.
+> - Staré vstupenky: 2 557 kódů, odbavení sedí u všech, skener zná všechny formáty.
+> - Účet tabletů `GSFtablety@gmail.com` přepnut ze staré role „pokladna“ (uměla mazat objednávky) na **Pokladní** (jen skener).
+>
+> **Plán B:**
+> 1. Cloudflare zpět: A `46.28.106.223` a AAAA `2a02:2b88:1:4::11f` pro `@` a `www` (`*` zůstal na WEDOS).
+> 2. `REZIM=ostre bash prechod.sh udrzba off`.
+>
+> **Zbývá:** viz část 3. Navíc:
+> - `www` → bez www řeší nginx (`return 301` v `conf/nginx/default.conf`).
+> - Ecomail podepisuje DKIM (`ecomail._domainkey`). Ověřit, zda SPF nepotřebuje include Ecomailu.
+> - Admin dostal e-mail „Nová objednávka“ 2×.
+> - Název platby v objednávce je text brány místo „Stripe – karta“.
+> - Odbavení ze starého systému se ve skeneru nezobrazuje v historii (počty sedí).
+> - FTP údaje WEDOS jsou na serveru (`import/.netrc-wedos`) kvůli plánu B a úklidu PDF. Smazat po úklidu.
+
 Nový web běží na kopii databáze ze 18. 11. 2026. Při přechodu ji nahradí čerstvá databáze z WEDOS, takže všechno, co se na testovacím webu nastavilo mimo kód, se musí zopakovat. Proto je to tady sepsané krok za krokem.
 
 **Kdo co dělá:**
