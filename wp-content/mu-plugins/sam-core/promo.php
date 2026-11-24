@@ -34,6 +34,12 @@ final class SAM_Promo {
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 60 );
 		add_action( 'admin_post_sam_promo_save', array( __CLASS__, 'admin_save' ) );
 		add_action( 'admin_post_sam_promo_codes', array( __CLASS__, 'admin_codes' ) );
+		// Stránky jsou ve statické cache: při změně akce a v okamžiku začátku/konce se musí smazat,
+		// jinak by web dál sliboval akci (a kalkulačka počítala slevu), kterou pokladna už nedá.
+		add_action( 'sam_promo_saved', array( __CLASS__, 'purge_pages' ) );
+		add_action( 'sam_promo_saved', array( __CLASS__, 'schedule_purge' ) );
+		add_action( self::PURGE_HOOK, array( __CLASS__, 'purge_pages' ) );
+		add_action( 'init', array( __CLASS__, 'ensure_purge' ), 20 );
 
 		add_filter( 'woocommerce_product_get_price', array( __CLASS__, 'regular_price' ), 99, 2 );
 		add_filter( 'woocommerce_product_get_sale_price', array( __CLASS__, 'no_sale_price' ), 99, 2 );
@@ -47,6 +53,67 @@ final class SAM_Promo {
 		add_filter( 'woocommerce_coupon_message', array( __CLASS__, 'coupon_message' ), 10, 3 );
 		add_filter( 'woocommerce_cart_totals_coupon_label', array( __CLASS__, 'coupon_label' ), 10, 2 );
 		add_filter( 'woocommerce_cart_totals_coupon_html', array( __CLASS__, 'coupon_html' ), 10, 3 );
+	}
+
+	/* ---------------- cache stránek ---------------- */
+
+	const PURGE_HOOK = 'sam_promo_purge';
+
+	/** Okamžiky (UNIX), kdy se mění to, co web o akci ukazuje: začátek a konec. */
+	private static function boundaries() {
+		$s = self::settings();
+		if ( empty( $s['enabled'] ) ) {
+			return array();
+		}
+		$out  = array();
+		$from = self::time( $s['from'] );
+		$to   = self::time( $s['to'] );
+		if ( $from && $from->getTimestamp() > time() ) {
+			$out[] = $from->getTimestamp() + 1;
+		}
+		if ( $to && $to->getTimestamp() + 60 > time() ) {
+			$out[] = $to->getTimestamp() + 61; // active() platí do :59 poslední minuty
+		}
+		return $out;
+	}
+
+	public static function schedule_purge() {
+		wp_clear_scheduled_hook( self::PURGE_HOOK );
+		foreach ( self::boundaries() as $ts ) {
+			wp_schedule_single_event( $ts, self::PURGE_HOOK, array( $ts ) );
+		}
+	}
+
+	/** Pojistka: úlohy existují i po importu databáze nebo smazání cronu. */
+	public static function ensure_purge() {
+		$b = self::boundaries();
+		if ( $b && ! wp_next_scheduled( self::PURGE_HOOK, array( $b[0] ) ) ) {
+			self::schedule_purge();
+		}
+	}
+
+	public static function purge_pages() {
+		if ( function_exists( 'wpfc_clear_all_cache' ) ) {
+			wpfc_clear_all_cache( true );
+		}
+		$dir = WP_CONTENT_DIR . '/cache/all';
+		if ( is_dir( $dir ) ) { // kdyby plugin cache nesmazal (nebo nebyl načtený)
+			$tmp = $dir . '.purge-' . time();
+			if ( @rename( $dir, $tmp ) ) { // phpcs:ignore
+				self::rrmdir( $tmp );
+			}
+		}
+	}
+
+	private static function rrmdir( $dir ) {
+		foreach ( (array) scandir( $dir ) as $f ) {
+			if ( '.' === $f || '..' === $f ) {
+				continue;
+			}
+			$p = $dir . '/' . $f;
+			is_dir( $p ) && ! is_link( $p ) ? self::rrmdir( $p ) : @unlink( $p ); // phpcs:ignore
+		}
+		@rmdir( $dir ); // phpcs:ignore
 	}
 
 	/* ---------------- nastavení ---------------- */

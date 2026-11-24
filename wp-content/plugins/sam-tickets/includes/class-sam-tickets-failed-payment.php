@@ -56,6 +56,17 @@ final class SAM_Tickets_Failed_Payment {
 		if ( ! self::is_ticket_order( $order ) || 'failed' !== $order->get_status() || $order->is_paid() || $order->get_meta( self::SENT_META, true ) || ! self::is_recent( $order ) ) {
 			return;
 		}
+		// Než zákazníkovi napíšeme „peníze neodešly“, ověříme to ve Stripe (a platbu zrušíme, aby nešla dokončit později).
+		$state = self::stripe_state( $order );
+		if ( 'unknown' === $state || 'processing' === $state ) {
+			if ( ! wp_next_scheduled( self::EMAIL_HOOK, array( (int) $order->get_id() ) ) ) {
+				wp_schedule_single_event( time() + self::EMAIL_DELAY, self::EMAIL_HOOK, array( (int) $order->get_id() ) );
+			}
+			return;
+		}
+		if ( 'paid' === $state ) {
+			return;
+		}
 		$recipient = $order->get_billing_email();
 		if ( ! is_email( $recipient ) ) {
 			return;
@@ -90,10 +101,35 @@ final class SAM_Tickets_Failed_Payment {
 			)
 		);
 		foreach ( $orders as $order ) {
-			if ( self::is_ticket_order( $order ) && ! $order->is_paid() ) {
-				$order->update_status( 'failed', 'Platba nebyla dokončena do 2 hodin, objednávka je označena jako neúspěšná.' );
+			$order = wc_get_order( $order->get_id() ); // čerstvý stav, webhook mohl mezitím zaplatit
+			if ( ! $order || 'pending' !== $order->get_status() || ! self::is_ticket_order( $order ) || $order->is_paid() ) {
+				continue;
+			}
+			if ( 'unpaid' !== self::stripe_state( $order ) ) {
+				continue; // zaplaceno (dokončeno), zpracovává se, nebo Stripe neodpověděl – zkusí další běh
+			}
+			$order->update_status( 'failed', 'Platba nebyla dokončena do 2 hodin (ověřeno ve Stripe, platba zrušena), objednávka je označena jako neúspěšná.' );
+		}
+	}
+
+	/**
+	 * Zeptá se Stripe, jak platba skutečně dopadla (webhook nemusel dorazit).
+	 * Zaplacenou objednávku brána rovnou dokončí, nezaplacenou platbu zruší.
+	 *
+	 * @return string paid | processing | unpaid | unknown
+	 */
+	private static function stripe_state( WC_Order $order ) {
+		if ( 'sam_stripe' !== $order->get_payment_method() || ! is_callable( array( 'SAM_Stripe_Gateway', 'settle_pending' ) ) ) {
+			return 'unpaid';
+		}
+		$state = SAM_Stripe_Gateway::settle_pending( $order );
+		if ( 'paid' === $state ) {
+			$fresh = wc_get_order( $order->get_id() );
+			if ( $fresh ) {
+				$fresh->add_order_note( 'Platba byla ve Stripe úspěšná, ale web se to nedozvěděl (webhook nedorazil). Objednávka dokončena při kontrole nedokončených plateb.' );
 			}
 		}
+		return $state;
 	}
 
 	private static function is_recent( WC_Order $order ) {
@@ -117,6 +153,9 @@ final class SAM_Tickets_Failed_Payment {
 	 */
 	public function fail_instead_of_cancel( $cancel, $order ) {
 		if ( $cancel && self::is_ticket_order( $order ) && 'sam_stripe' === $order->get_payment_method() ) {
+			if ( 'unpaid' !== self::stripe_state( $order ) ) {
+				return false;
+			}
 			$order->update_status( 'failed', 'Platba nebyla dokončena v časovém limitu, objednávka je označena jako neúspěšná.' );
 			return false;
 		}

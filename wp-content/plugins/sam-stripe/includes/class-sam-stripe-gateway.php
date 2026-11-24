@@ -187,6 +187,10 @@ class SAM_Stripe_Gateway extends WC_Payment_Gateway {
 
 		if ( $existing ) {
 			$intent = $client->get( 'payment_intents/' . rawurlencode( $existing ) );
+			if ( is_wp_error( $intent ) && 'sam_stripe_resource_missing' !== $intent->get_error_code() ) {
+				// Nevíme, v jakém stavu původní platba je (může být zaplacená) – nezakládat druhou.
+				return $intent;
+			}
 			if ( ! is_wp_error( $intent ) ) {
 				$reusable = in_array( $intent['status'], array( 'requires_payment_method', 'requires_confirmation', 'requires_action' ), true );
 				if ( 'succeeded' === $intent['status'] || 'processing' === $intent['status'] ) {
@@ -281,6 +285,56 @@ class SAM_Stripe_Gateway extends WC_Payment_Gateway {
 	 * volá se z návratu i z webhooku).
 	 */
 	public static function complete_from_intent( WC_Order $order, array $intent ) {
+		// Webhook a návrat zákazníka z platby chodí ve stejné vteřině: dokončit smí jen jeden.
+		global $wpdb;
+		$lock = 'sam_pay_' . $order->get_id();
+		if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 15)', $lock ) ) ) {
+			return false; // druhý požadavek platbu právě dokončuje
+		}
+		try {
+			return self::complete_locked( $order, $intent );
+		} finally {
+			$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
+		}
+	}
+
+	/**
+	 * Stav platby nedokončené objednávky přímo ve Stripe (pro úklid visících objednávek).
+	 * Zaplacenou objednávku dokončí, nezaplacený PaymentIntent zruší, aby už nešel zaplatit.
+	 *
+	 * @return string paid | processing | unpaid | unknown (Stripe neodpověděl – nic neměnit)
+	 */
+	public static function settle_pending( WC_Order $order ) {
+		$intent_id = (string) $order->get_meta( self::META_INTENT, true );
+		if ( '' === $intent_id ) {
+			return 'unpaid';
+		}
+		$client = new SAM_Stripe_Client();
+		$intent = $client->get( 'payment_intents/' . rawurlencode( $intent_id ), array( 'expand' => array( 'latest_charge' ) ) );
+		if ( is_wp_error( $intent ) || empty( $intent['status'] ) ) {
+			return 'unknown';
+		}
+		if ( 'succeeded' === $intent['status'] ) {
+			self::complete_from_intent( $order, $intent );
+			$fresh = wc_get_order( $order->get_id() );
+			return $fresh && $fresh->is_paid() ? 'paid' : 'unknown'; // unknown = nesedí částka (on-hold) apod.
+		}
+		if ( in_array( $intent['status'], array( 'processing', 'requires_capture' ), true ) ) {
+			return 'processing';
+		}
+		if ( 'canceled' === $intent['status'] ) {
+			return 'unpaid';
+		}
+		$canceled = $client->post( 'payment_intents/' . rawurlencode( $intent_id ) . '/cancel', array( 'cancellation_reason' => 'abandoned' ) );
+		if ( is_wp_error( $canceled ) ) {
+			// Mezitím mohl být zaplacen – ověří další běh.
+			return 'unknown';
+		}
+		return 'unpaid';
+	}
+
+	private static function complete_locked( WC_Order $order, array $intent ) {
+		wp_cache_delete( 'order-' . $order->get_id(), 'orders' );
 		$order = wc_get_order( $order->get_id() ); // čerstvý stav (souběh s webhookem)
 		if ( ! $order || $order->is_paid() ) {
 			return false;

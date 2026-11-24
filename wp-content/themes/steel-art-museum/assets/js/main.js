@@ -41,7 +41,12 @@
   const pad = n => String(n).padStart(2, '0');
   const tick = () => {
     const left = Math.floor((end - Date.now()) / 1000);
-    if (left <= 0) { box.hidden = true; document.querySelectorAll('.top-promo').forEach(a => a.remove()); return; }
+    if (left <= 0) {
+      box.hidden = true; document.querySelectorAll('.top-promo').forEach(a => a.remove());
+      // Akce skončila při otevřené stránce: ceny v kalkulačce už neplatí → načíst čerstvou stránku (jen jednou).
+      try { if (left > -86400 && !sessionStorage.getItem('samPromoEnd')) { sessionStorage.setItem('samPromoEnd', '1'); setTimeout(() => location.reload(), 90000 + left * 1000 > 0 ? 90000 + left * 1000 : 0); } } catch (e) {}
+      return;
+    }
     const d = Math.floor(left / 86400), h = Math.floor(left % 86400 / 3600), m = Math.floor(left % 3600 / 60), s = left % 60;
     out.textContent = out.dataset.label + ' ' + (d ? d + ' d ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
     out.hidden = false;
