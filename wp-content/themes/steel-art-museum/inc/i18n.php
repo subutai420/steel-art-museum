@@ -137,7 +137,7 @@ function sam_texts() {
 			'price_list'       => 'Ceník',
 			'contact_page'     => 'Kontakt',
 			'kudyznudy'        => 'Jsme na Kudyznudy.cz',
-			'made_by'          => 'Web: %s',
+			'made_by'          => 'Made with ❤️ by %s',
 			'cookies'          => 'Nastavení cookies',
 
 			'not_found_h'      => 'Tahle stránka tu není',
@@ -258,7 +258,7 @@ function sam_texts() {
 			'price_list'       => 'Price list',
 			'contact_page'     => 'Contact',
 			'kudyznudy'        => 'Find us on Kudyznudy.cz',
-			'made_by'          => 'Website: %s',
+			'made_by'          => 'Made with ❤️ by %s',
 			'cookies'          => 'Cookie settings',
 
 			'not_found_h'      => 'This page is not here',
