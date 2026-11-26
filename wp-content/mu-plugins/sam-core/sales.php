@@ -338,7 +338,7 @@ final class SAM_Sales {
 		foreach ( $items as $it ) {
 			$pid  = (int) $it->pid;
 			$orig = (int) apply_filters( 'wpml_object_id', $pid, 'product', true, 'cs' );
-			$name = $orig && 'product' === get_post_type( $orig ) ? get_the_title( $orig ) : html_entity_decode( (string) $it->name, ENT_QUOTES, 'UTF-8' );
+			$name = $orig && 'product' === get_post_type( $orig ) ? get_post_field( 'post_title', $orig ) : html_entity_decode( (string) $it->name, ENT_QUOTES, 'UTF-8' );
 			$k    = $orig && 'product' === get_post_type( $orig ) ? 'p' . $orig : 'n' . $name;
 			if ( ! isset( $types[ $k ] ) ) {
 				$types[ $k ] = array( 'name' => $name, 'qty' => 0, 'total' => 0.0 );
