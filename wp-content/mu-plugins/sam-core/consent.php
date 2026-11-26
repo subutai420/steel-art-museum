@@ -29,6 +29,22 @@ final class SAM_Consent {
 		add_filter( 'script_loader_tag', array( __CLASS__, 'hold_script' ), 99, 2 );
 		add_action( 'wp_footer', array( __CLASS__, 'banner' ), 50 );
 		add_filter( 'wc_order_attribution_allow_tracking', '__return_false' );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'attribution_early' ), 99 );
+	}
+
+	/**
+	 * Atribuce objednávek: se souhlasem (cookie) ji povolíme ještě před startem skriptu WooCommerce.
+	 * Jinak skript při každém načtení stránky smaže cookies sbjs_* (zdroj návštěvy se ztratí)
+	 * a prázdné hodnoty ve formuláři pokladny už nejdou přepsat. Řešeno v prohlížeči kvůli cache stránek.
+	 */
+	public static function attribution_early() {
+		if ( wp_script_is( 'wc-order-attribution', 'enqueued' ) ) {
+			wp_add_inline_script(
+				'wc-order-attribution',
+				"if(window.wc_order_attribution&&/(?:^|; )" . self::COOKIE . "=[^;]*a/.test(document.cookie))wc_order_attribution.params.allowTracking=true;",
+				'before'
+			);
+		}
 	}
 
 	public static function lang() {
@@ -136,7 +152,7 @@ function loadMarketing(){if(loaded)return;loaded=true;var list=[].slice.call(doc
 function apply(c,update){var a=c.indexOf('a')>-1,m=c.indexOf('m')>-1,g='granted',d='denied';
  if(update&&window.gtag){gtag('consent','update',{ad_storage:m?g:d,ad_user_data:m?g:d,ad_personalization:m?g:d,analytics_storage:a?g:d});gtag('set','ads_data_redaction',!m);}
  if(update&&window.dataLayer)dataLayer.push({event:'sam_consent_update',sam_analytics:a,sam_marketing:m});
- if(a){var tr=function(){if(window.wc_order_attribution&&wc_order_attribution.setOrderTracking)wc_order_attribution.setOrderTracking(true);};if(document.readyState==='complete')tr();else addEventListener('load',tr);}
+ if(a){var tr=function(){var w=window.wc_order_attribution;if(!w||!w.setOrderTracking||w.params.allowTracking)return;[].forEach.call(document.querySelectorAll('wc-order-attribution-inputs'),function(e){if(Object.prototype.hasOwnProperty.call(e,'values'))delete e.values;});w.setOrderTracking(true);};if(document.readyState==='complete')tr();else addEventListener('load',tr);}
  if(a||m)loadGTM();
  if(m)loadMarketing();}
 function store(c){document.cookie=K+'='+c+';path=/;max-age='+(180*86400)+';SameSite=Lax'+(location.protocol==='https:'?';Secure':'');box.hidden=true;apply(c,true);}
